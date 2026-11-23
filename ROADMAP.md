@@ -40,8 +40,10 @@ Repo, toolchain, and a live (empty) site.
   60-card / 4-copy (by name) / 1-ACE-SPEC / Basic Pokémon / legality validation
 - ☑ Deck view page (`/deck`: grouped Pokémon / Trainer / Energy, counts, problems)
 - ☑ Decklist ↔ URL encoding (`/deck?d=2.4_TWM-128…`, versioned, prints as listed)
-- ◐ **[owner]** Review: overrides approved, first PTCG Live import worked; a few more real
-  Limitless exports would be good
+- ☑ **[owner]** Review: overrides approved, PTCG Live import worked
+- ☑ Real-decklist test set (`npm run fetch-decklists` → `data/test-decklists.json`):
+  decklists only, from top Limitless archetypes, for internal tests; all 50 parse and
+  validate
 - ☐ Refresh `cards.json` automatically (scheduled GitHub Action opening a PR) when sets
   release
 - ☐ Later: "before / after rotation" toggle on the site (the data already supports it)
@@ -96,10 +98,14 @@ The foundation for the solver output, replays, and mid-game analysis.
   lower/upper bounds for comparison
 - ☐ Performance budget: typical deck T2 query in seconds in the browser across workers
 
-## M7 — Precomputed meta results ☐
-- ☐ Scrape/import top Limitless decklists
-- ☐ GitHub Actions runs the native solver and commits/publishes static JSON
-- ☐ Meta deck pages load instantly; recompute on new sets / card-effect changes
+## M7 — Real-deck regression suite (internal) ☐
+The site never shows meta data or decklists: users import their own lists. Real tournament
+lists are only a test set.
+- ☑ Fetch decklists from Limitless for tests (done in M1)
+- ☐ CI runs the native solver over the test decklists: no crashes, results stable across
+  changes, a performance budget per deck
+- ☐ Report which cards in the test decklists are unmodeled, to steer M5 effect coverage
+- ☐ Refresh the test set on new sets
 
 ## M8 — Mid-game analysis ☐
 - ☐ Board-state editor that produces an M3 state (hand, board, discard, known deck info,

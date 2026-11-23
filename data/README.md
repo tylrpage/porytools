@@ -77,3 +77,21 @@ on cards it can't read (fix those with a patch).
   stores card IDs (share links, effect files) looks them up by any print ID.
 - **Basic Energy:** one card per type, named "Basic Fire Energy" and so on, always legal,
   with every print from every era.
+
+## `test-decklists.json`
+
+Real tournament decklists from [Limitless](https://limitlesstcg.com), for internal tests
+only: the site never shows meta data or decklists. Built from `web/`:
+
+```sh
+npm run fetch-decklists                               # top 10 archetypes, 5 lists each
+npm run fetch-decklists -- --archetypes 20 --lists 8
+npm run fetch-decklists -- --refresh                  # ignore the cache
+```
+
+Only the decklists are stored, keyed by Limitless list ID, in PTCG Live format: no
+players, placements or meta shares. The deck index and archetype pages are read only to
+find list IDs. Pages are cached in `data/.cache/limitless/` and fetched at most one per
+second. A test parses and validates every list against `cards.json`, so a refresh doubles
+as a check that the card data covers current decks. The script reads Limitless's page
+markup, so a site redesign can break it; the parser tests show the expected shape.

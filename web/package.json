@@ -13,7 +13,8 @@
     "format:check": "prettier --check . ../data/*.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "cards": "node scripts/cards/build-cards.ts"
+    "cards": "node scripts/cards/build-cards.ts",
+    "fetch-decklists": "node scripts/decklists/fetch-decklists.ts"
   },
   "dependencies": {
     "react": "^19.3.1",

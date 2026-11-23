@@ -9,6 +9,10 @@ and example lines), and later mid-game analysis from a recorded game state.
 Out of scope for now (needs strong bots; revisit later): matchup tables, practice opponents,
 full win-probability game review.
 
+Not in scope at all: showing meta information or other people's decklists. Users import
+their own lists. Real tournament decklists (fetched from Limitless) are only an internal test
+set; store just the decklists, not players, placements or meta shares.
+
 Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
 
 ## Working with the owner
@@ -34,8 +38,9 @@ Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
   TS.
 - **Solver core:** Rust → WASM (`wasm-bindgen` / `wasm-pack`), run in Web Workers (one per
   core). The same crate builds natively for `cargo test` and batch precompute.
-- **Precompute:** GitHub Actions runs the native solver on top meta decklists (Limitless)
-  and emits static JSON so popular decks load instantly.
+- **Testing:** CI runs tests over real tournament decklists (`data/test-decklists.json`,
+  fetched from Limitless); later the native solver runs over them as a regression and
+  performance suite. Nothing from them is published on the site.
 - **Sharing:** decklist (and later game states) encoded in the URL (lz-string / base64 card
   IDs), no server.
 
