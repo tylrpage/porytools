@@ -5,19 +5,21 @@ porytools.com. Status: ☐ todo · ◐ in progress · ☑ done.
 
 ---
 
-## M0 — Foundations ☐
+## M0 — Foundations ◐
 Repo, toolchain, and a live (empty) site.
-- ☐ `git init`, remote `tylrpage/porytools`, `.gitignore`, MIT (or similar) license, README
-  with disclaimer
-- ☐ Vite + React + TypeScript app; Vitest; ESLint + Prettier
-- ☐ Monorepo layout: `web/` (site), `solver/` (Rust crate, added in M4), `data/` (card
+- ☑ `git init`, remote `tylrpage/porytools`, `.gitignore`, MIT license, README with
+  disclaimer
+- ☑ Vite + React + TypeScript app; Vitest; oxlint (the Vite template's default, used in
+  place of ESLint) + Prettier
+- ☑ Monorepo layout: `web/` (site), `solver/` (Rust crate, added in M4), `data/` (card
   pipeline), `effects/` (card effect YAML)
-- ☐ GitHub Actions CI: typecheck, lint, test on every PR
-- ☐ **[owner]** Cloudflare: add `porytools.com` as a zone, then switch the Porkbun
-  nameservers to the two Cloudflare ones
+- ☑ GitHub Actions CI: typecheck, lint, format check, test, build on every PR and push to
+  `main`
+- ◐ **[owner]** Cloudflare: add `porytools.com` as a zone, then switch the Porkbun
+  nameservers to the two Cloudflare ones (nameservers switched; waiting on propagation)
 - ☐ **[owner + me]** Cloudflare Pages project connected to the GitHub repo (build
   `web/`), custom domain, Web Analytics
-- ☐ Site shell: header/nav, footer disclaimer, About page
+- ☑ Site shell: header/nav, footer disclaimer, About page, 404
 
 ## M1 — Card data & decklist import ☐
 - ☐ Build-time script: fetch pokemon-tcg-data, filter by legal regulation marks
@@ -102,4 +104,3 @@ The foundation for the solver output, replays, and mid-game analysis.
 ## Open questions
 - Exact game-record format (M3 design session).
 - Which meta decks to target first (M5).
-- License choice for the repo (MIT suggested).
