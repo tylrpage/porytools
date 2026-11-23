@@ -3,7 +3,7 @@
 // so it may only use TypeScript syntax that Node can strip (no enums or namespaces).
 
 /** Bump when the shape of cards.json changes in a way old readers can't handle. */
-export const CARD_DATA_VERSION = 1
+export const CARD_DATA_VERSION = 2
 
 /** Energy / Pokémon types as written on cards. */
 export type EnergyType =
@@ -36,7 +36,7 @@ export interface Ability {
 
 interface CardBase {
   /**
-   * The print the site and solver use for this card (e.g. "me1-131"): the newest print
+   * The print the site and solver use for this card (e.g. "MEG-131"): the newest print
    * at regular rarity, so promos, full arts and old prints all show as that one. It can
    * change when a reprint comes out, so look cards up by any print ID (`CardDb.cardOfPrint`)
    * when the ID was stored somewhere (share links, effect files, precomputed results).
@@ -90,8 +90,7 @@ export interface EnergyCard extends CardBase {
 export type Card = PokemonCard | TrainerCard | EnergyCard
 
 export interface SetInfo {
-  id: string
-  /** Set code used by PTCG Live and Limitless, e.g. "TWM". */
+  /** Set code used by PTCG Live, e.g. "TWM". Print IDs start with it. */
   code: string
   name: string
   /** ISO date, e.g. "2024-05-24". */
@@ -101,7 +100,9 @@ export interface SetInfo {
 export interface CardData {
   version: typeof CARD_DATA_VERSION
   /** Where the data came from, for reproducibility. */
-  source: { repo: string; commit: string; fetchedAt: string }
+  sources: { name: string; url: string; version: string }[]
+  /** Build date, e.g. "2026-11-23". */
+  builtAt: string
   /** Oldest Standard-legal regulation mark (from data/config.json). */
   oldestLegalMark: string
   /** Extra set codes that decklists use, mapped to a code in `sets` (e.g. "SVP" → "PR-SV"). */

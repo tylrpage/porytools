@@ -10,7 +10,8 @@ import {
 } from './normalize.ts'
 
 const config: Config = { oldestLegalMark: 'H', setCodeAliases: {} }
-const source = { repo: 'test', commit: '0', fetchedAt: '2026-01-01' }
+const sources = [{ name: 'test', url: 'https://example.com', version: '0' }]
+const builtAt = '2026-01-01'
 
 const sets: RawSet[] = [
   { id: 'old1', name: 'Old Set', ptcgoCode: 'OLD', releaseDate: '2020/01/01' },
@@ -52,7 +53,7 @@ function upstream(cards: Record<string, RawCard[]>): Upstream {
 }
 
 const build = (cards: Record<string, RawCard[]>, overrides: Overrides = {}) =>
-  buildCardData(upstream(cards), overrides, config, source)
+  buildCardData(upstream(cards), overrides, config, sources, builtAt)
 
 describe('buildCardData', () => {
   it('collapses reprints, ignoring reminder text and whitespace, and makes older prints legal', () => {
@@ -65,9 +66,9 @@ describe('buildCardData', () => {
     expect(warnings).toEqual([])
     expect(data.cards).toHaveLength(1)
     expect(data.cards[0]).toMatchObject({
-      id: 'me1-131', // newest regular-rarity print
+      id: 'MEG-131', // newest regular-rarity print
       mark: 'I', // newest mark wins
-      prints: ['old1-5', 'sv1-196', 'me1-131'],
+      prints: ['OLD-5', 'SVI-196', 'MEG-131'],
       rules: [ULTRA],
     })
     expect(data.sets.map((s) => s.code)).toEqual(['OLD', 'SVI', 'MEG'])
@@ -84,14 +85,14 @@ describe('buildCardData', () => {
       me1: [ball('me1-131', 'Uncommon'), ball('me1-250', 'Illustration Rare')],
     })
     expect(data.cards[0]).toMatchObject({
-      id: 'me1-131',
-      prints: ['sv1-196', 'sv5-200', 'me1-131', 'me1-250'],
+      id: 'MEG-131',
+      prints: ['SVI-196', 'TEF-200', 'MEG-131', 'MEG-250'],
     })
     const promoOnly = build({
       sv5: [ball('sv5-200', 'Promo')],
       me1: [ball('me1-250', 'Hyper Rare')],
     })
-    expect(promoOnly.data.cards[0].id).toBe('sv5-200')
+    expect(promoOnly.data.cards[0].id).toBe('TEF-200')
   })
 
   it('drops the pictured character from Trainer names, so those prints merge', () => {
@@ -106,7 +107,7 @@ describe('buildCardData', () => {
       me1: [boss('me1-114', "Boss's Orders", 'I')],
     })
     expect(data.cards).toHaveLength(1)
-    expect(data.cards[0]).toMatchObject({ name: "Boss's Orders", prints: ['sv1-172', 'me1-114'] })
+    expect(data.cards[0]).toMatchObject({ name: "Boss's Orders", prints: ['SVI-172', 'MEG-114'] })
   })
 
   it('drops cards with no legal print', () => {
@@ -119,8 +120,8 @@ describe('buildCardData', () => {
       sv5: [item('sv5-1', 'Thing', 'H', ['Draw 2 cards.'])],
       me1: [item('me1-1', 'Thing', 'I', ['Draw 3 cards.'])],
     })
-    expect(data.cards.map((c) => c.id)).toEqual(['sv5-1', 'me1-1'])
-    expect(warnings).toEqual(['possible split reprint: "Thing" appears as 2 cards (sv5-1, me1-1)'])
+    expect(data.cards.map((c) => c.id)).toEqual(['TEF-1', 'MEG-1'])
+    expect(warnings).toEqual(['possible split reprint: "Thing" appears as 2 cards (TEF-1, MEG-1)'])
   })
 
   it('treats every basic Energy print of a type as one always-legal card', () => {
@@ -142,9 +143,9 @@ describe('buildCardData', () => {
         basic: true,
         provides: 'Fire',
         rules: [],
-        id: 'sv1-2',
+        id: 'SVI-2',
         mark: null,
-        prints: ['old1-99', 'sv1-2'],
+        prints: ['OLD-99', 'SVI-2'],
       },
     ])
   })
@@ -162,9 +163,9 @@ describe('buildCardData', () => {
       attacks: [{ name: 'Tackle', cost: [], damage: '10', text: '' }],
       retreat: 1,
       rules: [],
-      id: 'sv5-10',
+      id: 'TEF-10',
       mark: 'H',
-      prints: ['sv5-10'],
+      prints: ['TEF-10'],
     })
   })
 
@@ -179,7 +180,7 @@ describe('buildCardData', () => {
 
   it('reports incomplete upstream data as errors', () => {
     const { errors } = build({ sv5: [{ ...dreepy, subtypes: [] }] })
-    expect(errors).toEqual(['sv5-10 (Dreepy): Pokémon has no stage in subtypes []'])
+    expect(errors).toEqual(['TEF-10 (Dreepy): Pokémon has no stage in subtypes []'])
   })
 
   it('applies patches, and warns when a patch is no longer needed', () => {
@@ -192,11 +193,42 @@ describe('buildCardData', () => {
 
     const redundant = build({ sv5: [dreepy] }, { patches: { 'sv5-10': { subtypes: ['Basic'] } } })
     expect(redundant.warnings).toEqual([
-      'patch for sv5-10 matches upstream now; consider removing it',
+      'patch for sv5-10 matches the source now; consider removing it',
     ])
 
     const unknown = build({ sv5: [dreepy] }, { patches: { 'sv5-999': { hp: '80' } } })
     expect(unknown.errors).toEqual(['patch targets unknown card sv5-999'])
+  })
+
+  it('matches patches by print ID too, and a patch can fix a wrong number', () => {
+    const byPrintId = build(
+      { sv5: [{ ...dreepy, subtypes: [] }] },
+      { patches: { 'TEF-10': { subtypes: ['Basic'] } } },
+    )
+    expect(byPrintId.errors).toEqual([])
+
+    const wrongNumber = { ...item('sv5-80', 'Fossil', 'H', ['Play as a Basic.']), number: '10' }
+    const clash = build({ sv5: [dreepy, wrongNumber] })
+    expect(clash.errors).toEqual(['print ID TEF-10 is used twice (Dreepy, Fossil)'])
+    const fixed = build({ sv5: [dreepy, wrongNumber] }, { patches: { 'sv5-80': { number: '80' } } })
+    expect(fixed.errors).toEqual([])
+    expect(fixed.data.cards.map((c) => c.id)).toEqual(['TEF-10', 'TEF-80'])
+  })
+
+  it('leaves out excluded sets and sets without a PTCG Live code', () => {
+    const extra: RawSet[] = [
+      { id: 'sv5c', name: 'Classic', ptcgoCode: 'TEF', releaseDate: '2024/03/22' },
+      { id: 'nocode', name: 'No Code', releaseDate: '2024/03/22' },
+    ]
+    const { data, errors } = buildCardData(
+      { sets: [...sets, ...extra], cards: { sv5: [dreepy], sv5c: [dreepy], nocode: [dreepy] } },
+      {},
+      { ...config, excludeSets: ['sv5c'] },
+      sources,
+      builtAt,
+    )
+    expect(errors).toEqual([])
+    expect(data.cards.map((c) => c.prints)).toEqual([['TEF-10']])
   })
 
   it('adds sets and cards from overrides', () => {
@@ -214,9 +246,8 @@ describe('buildCardData', () => {
       },
     )
     expect(errors).toEqual([])
-    expect(data.cards[0]).toMatchObject({ id: 'me9-1', mark: 'J', prints: ['sv5-10', 'me9-1'] })
+    expect(data.cards[0]).toMatchObject({ id: 'FUT-1', mark: 'J', prints: ['TEF-10', 'FUT-1'] })
     expect(data.sets.at(-1)).toEqual({
-      id: 'me9',
       code: 'FUT',
       name: 'Future Set',
       released: '2027-01-01',
@@ -225,7 +256,13 @@ describe('buildCardData', () => {
 
   it('follows the configured oldest legal mark', () => {
     const cards = { sv5: [dreepy], me1: [item('me1-1', 'New Item', 'I', ['Draw 2 cards.'])] }
-    const later = buildCardData(upstream(cards), {}, { ...config, oldestLegalMark: 'I' }, source)
+    const later = buildCardData(
+      upstream(cards),
+      {},
+      { ...config, oldestLegalMark: 'I' },
+      sources,
+      builtAt,
+    )
     expect(later.data.cards.map((c) => c.name)).toEqual(['New Item'])
     expect(later.data.oldestLegalMark).toBe('I')
   })

@@ -1,18 +1,40 @@
 {
-  "$comment": "Fixes and additions on top of upstream. patches: fields merged over an upstream card (by ID). sets / cards: sets and cards upstream hasn't added yet, in upstream's format. The build warns when an entry becomes redundant.",
+  "$comment": "Fixes and additions on top of the sources. patches: fields merged over a source card, keyed by print ID (\"PBL-42\") or, to fix a wrong number, the source's own ID (\"zsv10pt5-80\"). sets / cards: sets and cards the sources haven't added yet, in pokemon-tcg-data's format; cards are keyed by set ID. The build warns when an entry becomes redundant.",
   "patches": {
-    "me5-42": {
+    "PBL-42": {
       "subtypes": ["Basic"]
     },
-    "me5-115": {
+    "PBL-115": {
       "subtypes": ["Stage 2", "MEGA", "ex"]
     },
-    "sv8pt5-92": {
+    "PRE-92": {
       "subtypes": ["Basic", "Tera", "ex"]
     },
-    "me5-104": {
+    "PBL-104": {
       "rules": [
         "If the Pokémon this card is attached to doesn't have a Rule Box, the attacks it uses do 30 more damage to your opponent's Active Pokémon ex (before applying Weakness and Resistance). (Pokémon ex, Pokémon V, etc. have Rule Boxes.)"
+      ]
+    },
+    "zsv10pt5-80": {
+      "number": "80"
+    },
+    "MEP-82": {
+      "attacks": [
+        {
+          "name": "Thunder",
+          "cost": ["Lightning", "Lightning"],
+          "damage": "90",
+          "text": "This Pokémon also does 30 damage to itself."
+        }
+      ]
+    },
+    "MEP-8": {
+      "abilities": [
+        {
+          "type": "Ability",
+          "name": "Damp",
+          "text": "Pokémon in play (both yours and your opponent's) lose any Ability that requires the Pokémon using it to Knock Out itself."
+        }
       ]
     }
   },

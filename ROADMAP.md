@@ -29,12 +29,17 @@ Repo, toolchain, and a live (empty) site.
 - ☑ Set-code → data-ID mapping (upstream codes + aliases); reprint collapsing by game text
   (older prints legal through a reprint); basic Energy as one always-legal card per type
 - ☑ One display print per card (newest regular rarity): promos, full arts and older prints
-  map to it in the UI, share links and (later) the solver
+  map to it in the UI and (later) the solver; share links and exports keep the listed
+  prints
+- ☑ Print IDs follow PTCG Live (`TWM-128`), independent of the data source
+- ☑ TCGdex adapter for sets pokemon-tcg-data lacks (MEE, MEP); fallback source if it
+  stops adding sets (pokemon-tcg-data is deprecated; Scrydex ruled out: paid, no
+  redistribution)
 - ☑ `data/overrides.json`: patches for upstream gaps (4 so far) + new sets/cards
 - ☑ Decklist parser: PTCG Live export + Limitless text; errors with line numbers;
   60-card / 4-copy (by name) / 1-ACE-SPEC / Basic Pokémon / legality validation
 - ☑ Deck view page (`/deck`: grouped Pokémon / Trainer / Energy, counts, problems)
-- ☑ Decklist ↔ URL encoding (`/deck?d=1.4sv6-128…`, versioned; any print ID decodes)
+- ☑ Decklist ↔ URL encoding (`/deck?d=2.4_TWM-128…`, versioned, prints as listed)
 - ◐ **[owner]** Review: overrides approved, first PTCG Live import worked; a few more real
   Limitless exports would be good
 - ☐ Refresh `cards.json` automatically (scheduled GitHub Action opening a PR) when sets
@@ -112,8 +117,8 @@ The foundation for the solver output, replays, and mid-game analysis.
 
 ## Open questions
 - Basic Energy spellings seen: PTCG Live `Basic {G} Energy SVE 1`, Limitless
-  `Psychic Energy MEE` (MEE isn't upstream; basic Energy resolves by name).
-- Upstream has no Mega Evolution promo set yet; add it to `data/overrides.json` when
-  decks need one.
+  `Psychic Energy MEE`.
+- Does pokemon-tcg-data add the next set (likely January)? If not, switch new sets to
+  TCGdex.
 - Exact game-record format (M3 design session).
 - Which meta decks to target first (M5).

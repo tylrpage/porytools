@@ -24,7 +24,7 @@ function DeckEditor({ db }: { db: CardDb }) {
   // A share link fills the text box once, on first render.
   const [text, setText] = useState(() => {
     const shared = params.get('d')
-    return shared ? formatDecklist(decodeDeck(shared, db).entries, db) : ''
+    return shared ? formatDecklist(decodeDeck(shared, db).lines, db) : ''
   })
   const [copied, setCopied] = useState(false)
 
@@ -37,9 +37,9 @@ function DeckEditor({ db }: { db: CardDb }) {
   const onChange = (value: string) => {
     setText(value)
     setCopied(false)
-    // Keep the address bar a share link for whatever is in the box.
+    // Keep the address bar a share link for whatever is in the box, prints as written.
     const parsed = parseDecklist(value, db)
-    setParams(parsed.entries.length > 0 ? { d: encodeDeck(parsed.entries) } : {}, { replace: true })
+    setParams(parsed.lines.length > 0 ? { d: encodeDeck(parsed.lines) } : {}, { replace: true })
   }
 
   const copyLink = async () => {
@@ -85,8 +85,13 @@ function DeckEditor({ db }: { db: CardDb }) {
       {entries.length === 0 && <Problems problems={problems} />}
       <p className="muted small">
         Card data: {db.cards.length} cards from{' '}
-        <a href={`https://github.com/${db.data.source.repo}`}>{db.data.source.repo}</a>, updated{' '}
-        {db.data.source.fetchedAt}.
+        {db.data.sources.map((s, i) => (
+          <span key={s.name}>
+            {i > 0 && ' and '}
+            <a href={s.url}>{s.name}</a>
+          </span>
+        ))}
+        , updated {db.data.builtAt}.
       </p>
     </>
   )

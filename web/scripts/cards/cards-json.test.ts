@@ -62,4 +62,28 @@ Energy: 27
     expect(boss?.count).toBe(4)
     expect(entries.filter((e) => e.card.kind === 'energy').map((e) => e.count)).toEqual([18, 9])
   })
+
+  it('maps promos and the TCGdex sets (MEE, MEP) to the cards they reprint', () => {
+    const { entries, problems } = parseDecklist(
+      [
+        '2 Mega Lucario ex MEP 12',
+        '1 Mega Lucario ex MEG 77',
+        '3 Psychic Energy MEE 5',
+        '4 Ultra Ball 30C 128',
+      ].join('\n'),
+      db,
+    )
+    expect(problems).toEqual([])
+    expect(entries.map((e) => [e.count, e.card.name])).toEqual([
+      [3, 'Mega Lucario ex'],
+      [3, 'Basic Psychic Energy'],
+      [4, 'Ultra Ball'],
+    ])
+  })
+
+  it('uses PTCG Live print IDs', () => {
+    for (const card of data.cards) {
+      for (const print of card.prints) expect(print).toMatch(/^[A-Z0-9-]+-[A-Z0-9_]+$/)
+    }
+  })
 })

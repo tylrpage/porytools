@@ -34,20 +34,35 @@ describe('parseDecklist', () => {
     const { entries, problems } = parse(VALID)
     expect(problems).toEqual([])
     expect(entries.map((e) => [e.count, e.card.name, e.card.id])).toEqual([
-      [4, 'Dreepy', 'sv6-128'],
-      [3, 'Drakloak', 'sv6-129'],
-      [3, 'Dragapult ex', 'sv6-130'],
-      [4, 'Ultra Ball', 'me1-131'],
-      [1, 'Prime Catcher', 'sv5-157'],
-      [4, "Boss's Orders", 'me1-114'],
-      [41, 'Basic Psychic Energy', 'sve-13'],
+      [4, 'Dreepy', 'TWM-128'],
+      [3, 'Drakloak', 'TWM-129'],
+      [3, 'Dragapult ex', 'TWM-130'],
+      [4, 'Ultra Ball', 'MEG-131'],
+      [1, 'Prime Catcher', 'TEF-157'],
+      [4, "Boss's Orders", 'MEG-114'],
+      [41, 'Basic Psychic Energy', 'SVE-13'],
     ])
   })
 
-  it('maps older prints and promos to the display print', () => {
-    const { entries, problems } = parse("4 Ultra Ball BRS 150\n2 Boss's Orders PAL 172")
+  it('maps older prints and promos to the display print, keeping the listed print', () => {
+    const { entries, lines, problems } = parse("4 Ultra Ball BRS 150\n2 Boss's Orders PAL 172")
     expect(problems).toEqual([])
-    expect(entries.map((e) => e.card.id)).toEqual(['me1-131', 'me1-114'])
+    expect(entries.map((e) => e.card.id)).toEqual(['MEG-131', 'MEG-114'])
+    expect(lines.map((l) => l.printId)).toEqual(['BRS-150', 'PAL-172'])
+  })
+
+  it('reads set codes that start with a digit', () => {
+    // An unknown print falls back to the name, which only works if "30C 999" was split
+    // off as a set code and number.
+    const { entries, problems } = parse('4 Dreepy 30C 999')
+    expect(entries[0].card.name).toBe('Dreepy')
+    expect(problems).toEqual([
+      {
+        severity: 'warning',
+        line: 1,
+        message: 'Didn\'t recognize 30C 999; matched "Dreepy" by name',
+      },
+    ])
   })
 
   it('accepts Trainer names with the pictured character', () => {
@@ -83,7 +98,7 @@ describe('parseDecklist', () => {
   it('matches by name when there is no set code, if the name is unambiguous', () => {
     const { entries, problems } = parse('2 Dreepy')
     expect(problems).toEqual([])
-    expect(entries[0].card.id).toBe('sv6-128')
+    expect(entries[0].card.id).toBe('TWM-128')
   })
 
   it('asks for a set code when several cards share a name', () => {
@@ -185,43 +200,31 @@ describe('validateDeck', () => {
 })
 
 describe('sharing', () => {
-  it('round-trips a deck through a share link', () => {
-    const { entries } = parse(VALID)
-    const encoded = encodeDeck(entries)
-    expect(encoded).toMatch(/^1\.4sv6-128\.3sv6-129\.3sv6-130\.4me1-131\./)
-    expect(encoded).toMatch(/^[A-Za-z0-9.-]+$/)
-    expect(decodeDeck(encoded, db)).toEqual({ entries, problems: [] })
-  })
-
-  it('accepts any print ID in a share link, so old links survive a new display print', () => {
-    const { entries, problems } = decodeDeck('1.2sv1-196.2swsh9-150', db)
-    expect(problems).toEqual([])
-    expect(entries.map((e) => [e.count, e.card.id])).toEqual([[4, 'me1-131']])
+  it('keeps the prints as written in share links, while entries merge by card', () => {
+    const { entries, lines } = parse(VALID)
+    const encoded = encodeDeck(lines)
+    expect(encoded).toBe(
+      '2.4_TWM-128.3_TWM-129.3_TWM-130.2_SVI-196.2_MEG-131.1_TEF-157.4_MEG-114.41_SVE-5',
+    )
+    expect(encoded).toMatch(/^[A-Za-z0-9._-]+$/)
+    expect(decodeDeck(encoded, db)).toEqual({ entries, lines, problems: [] })
   })
 
   it('reports unknown cards in a share link', () => {
-    const { entries, problems } = decodeDeck('1.4sv6-128.2zz9-1', db)
+    const { entries, problems } = decodeDeck('2.4_TWM-128.2_ZZZ-1', db)
     expect(entries).toHaveLength(1)
-    expect(problems[0].message).toMatch(/zz9-1/)
+    expect(problems[0].message).toMatch(/ZZZ-1/)
   })
 
-  it('exports with display prints, and the export parses back to the same entries', () => {
-    const { entries } = parse(VALID)
-    const text = formatDecklist(entries, db)
-    expect(text).toBe(`Pokémon: 10
-4 Dreepy TWM 128
-3 Drakloak TWM 129
-3 Dragapult ex TWM 130
+  it('exports the list as written, which parses back to the same lines', () => {
+    const { lines } = parse(VALID)
+    const text = formatDecklist(lines, db)
+    expect(text).toBe(VALID)
+    expect(parse(text).lines).toEqual(lines)
+  })
 
-Trainer: 9
-4 Ultra Ball MEG 131
-1 Prime Catcher TEF 157
-4 Boss's Orders MEG 114
-
-Energy: 41
-41 Basic {P} Energy SVE 13
-
-Total Cards: 60`)
-    expect(parse(text).entries).toEqual(entries)
+  it('uses the display print for lines that named no print', () => {
+    const { lines } = parse('4 Ultra Ball')
+    expect(lines[0].printId).toBe('MEG-131')
   })
 })

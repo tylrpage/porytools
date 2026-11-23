@@ -2,6 +2,7 @@
 // compact format, collapse reprints, and filter to Standard. No I/O here, so it is easy to
 // test; `build-cards.ts` does the fetching and writing.
 
+import { normalizeNumber, printId, splitPrintId } from '../../src/cards/ids.ts'
 import { compareMarks, markIsLegal } from '../../src/cards/legality.ts'
 import {
   CARD_DATA_VERSION,
@@ -15,17 +16,22 @@ import {
   type TrainerKind,
 } from '../../src/cards/types.ts'
 
-// ---- Upstream (PokemonTCG/pokemon-tcg-data) shapes, only the fields we read ----
+// ---- Source shapes (PokemonTCG/pokemon-tcg-data; tcgdex.ts converts to these too) ----
 
 export interface RawSet {
   id: string
   name: string
+  /** PTCG Live set code, e.g. "TWM". Sets without one are skipped. */
   ptcgoCode?: string
   /** "2024/05/24" */
   releaseDate: string
 }
 
 export interface RawCard {
+  /**
+   * The source's ID on input ("sv6-128"). The build replaces it with our print ID
+   * ("TWM-128") before anything else reads it, so overrides use print IDs.
+   */
   id: string
   name: string
   supertype: string
@@ -54,15 +60,19 @@ export interface Upstream {
 export interface Config {
   oldestLegalMark: string
   setCodeAliases: Record<string, string>
+  /** Set IDs to leave out entirely, e.g. a subset that shares its parent's code. */
+  excludeSets?: string[]
+  /** TCGdex set IDs to add, for sets pokemon-tcg-data doesn't have. */
+  tcgdexSets?: string[]
 }
 
 /** data/overrides.json */
 export interface Overrides {
-  /** Field-level fixes merged over an upstream card, keyed by card ID. */
+  /** Field-level fixes merged over a source card, keyed by print ID ("PBL-42"). */
   patches?: Record<string, Partial<RawCard>>
-  /** Sets upstream hasn't added yet. */
+  /** Sets the sources haven't added yet. */
   sets?: RawSet[]
-  /** Cards upstream hasn't added yet, keyed by set ID. Same shape as upstream. */
+  /** Cards the sources haven't added yet, keyed by set ID. Same shape as upstream. */
   cards?: Record<string, RawCard[]>
 }
 
@@ -74,23 +84,26 @@ export interface BuildResult {
   errors: string[]
 }
 
-// ---- Overrides ----
+// ---- Overrides and IDs ----
 
 export function applyOverrides(
   upstream: Upstream,
   overrides: Overrides,
+  config: Config,
   warnings: string[],
   errors: string[],
 ): Upstream {
-  const sets = [...upstream.sets]
+  const excluded = new Set(config.excludeSets ?? [])
+  const sets = upstream.sets.filter((s) => !excluded.has(s.id))
   const cards: Record<string, RawCard[]> = {}
   for (const [setId, list] of Object.entries(upstream.cards)) cards[setId] = [...list]
 
   for (const set of overrides.sets ?? []) {
-    if (sets.some((s) => s.id === set.id)) {
-      warnings.push(
-        `override set ${set.id} now exists upstream; consider removing it from overrides`,
-      )
+    const exists = sets.some(
+      (s) => s.id === set.id || (set.ptcgoCode !== undefined && s.ptcgoCode === set.ptcgoCode),
+    )
+    if (exists) {
+      warnings.push(`override set ${set.id} now exists in a source; consider removing it`)
       continue
     }
     sets.push(set)
@@ -103,10 +116,12 @@ export function applyOverrides(
     }
     const existing = (cards[setId] ??= [])
     for (const card of list) {
-      const i = existing.findIndex((c) => c.id === card.id)
+      const i = existing.findIndex(
+        (c) => normalizeNumber(c.number) === normalizeNumber(card.number),
+      )
       if (i >= 0) {
         warnings.push(
-          `override card ${card.id} now exists upstream; the override still wins, consider removing it`,
+          `override card ${setId} #${card.number} now exists in a source; the override still wins, consider removing it`,
         )
         existing[i] = card
       } else {
@@ -115,23 +130,40 @@ export function applyOverrides(
     }
   }
 
-  for (const [id, patch] of Object.entries(overrides.patches ?? {})) {
-    const setId = id.slice(0, id.lastIndexOf('-'))
-    const list = cards[setId]
-    const i = list?.findIndex((c) => c.id === id) ?? -1
-    if (!list || i < 0) {
-      errors.push(`patch targets unknown card ${id}`)
+  // Sets without a PTCG Live code can't appear in a decklist.
+  const coded = sets.filter((s) => s.ptcgoCode)
+
+  // Patches match a print ID ("PBL-42") or, when the source's number is wrong, the
+  // source's own ID ("zsv10pt5-80"). They apply before print IDs are assigned, so a patch
+  // can fix the number.
+  for (const [key, patch] of Object.entries(overrides.patches ?? {})) {
+    let found: { list: RawCard[]; i: number } | undefined
+    for (const set of coded) {
+      const list = cards[set.id] ?? []
+      const i = list.findIndex((c) => c.id === key || printId(set.ptcgoCode!, c.number) === key)
+      if (i >= 0) found = { list, i }
+    }
+    if (!found) {
+      errors.push(`patch targets unknown card ${key}`)
       continue
     }
-    const original = list[i]
+    const original = found.list[found.i]
     const redundant = Object.entries(patch).every(
-      ([key, value]) => JSON.stringify(original[key as keyof RawCard]) === JSON.stringify(value),
+      ([field, value]) =>
+        JSON.stringify(original[field as keyof RawCard]) === JSON.stringify(value),
     )
-    if (redundant) warnings.push(`patch for ${id} matches upstream now; consider removing it`)
-    list[i] = { ...original, ...patch }
+    if (redundant) warnings.push(`patch for ${key} matches the source now; consider removing it`)
+    found.list[found.i] = { ...original, ...patch }
   }
 
-  return { sets, cards }
+  const withIds: Record<string, RawCard[]> = {}
+  for (const set of coded) {
+    withIds[set.id] = (cards[set.id] ?? []).map((c) => ({
+      ...c,
+      id: printId(set.ptcgoCode!, c.number),
+    }))
+  }
+  return { sets: coded, cards: withIds }
 }
 
 // ---- Normalization ----
@@ -156,7 +188,18 @@ const BASIC_ENERGY_NAME =
 
 /** Normalize text so trivial differences (whitespace, curly quotes) don't split reprints. */
 export function cleanText(text: string): string {
-  return text.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim()
+  return text
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/\s+/g, ' ')
+    .replace(/ ([♀♂])/g, '$1') // "Nidoran ♀" and "Nidoran♀"
+    .trim()
+}
+
+/** Effect text: also tolerate a missing final period, a common typo in the sources. */
+function cleanEffect(text: string): string {
+  const t = cleanText(text)
+  return t === '' || /[.!?)"']$/.test(t) ? t : `${t}.`
 }
 
 /**
@@ -171,13 +214,17 @@ const REMINDERS: readonly RegExp[] = [
   /^You may attach any number of Pokémon Tools to your Pokémon during your turn\./,
   /^Attach a Pokémon Tool to 1 of your Pokémon that doesn't already have a Pokémon Tool attached\.$/,
   /^(ACE SPEC: )?You can't have more than 1 ACE SPEC card in your deck\.$/,
-  /^Pokémon ex rule: /i,
+  /^(Pokémon ex rule: )?When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards\.$/i,
   /^Mega Evolution ex rule: /i,
   /^(Tera: )?As long as this Pokémon is on your Bench, prevent all damage done to this Pokémon by attacks \(both yours and your opponent's\)\.$/,
 ]
 
+/** One entry per paragraph (sources disagree on whether paragraphs are separate entries). */
 export function cleanRules(rules: string[] | undefined): string[] {
-  return (rules ?? []).map(cleanText).filter((r) => r !== '' && !REMINDERS.some((re) => re.test(r)))
+  return (rules ?? [])
+    .flatMap((r) => r.split(/\n\s*\n/))
+    .map(cleanText)
+    .filter((r) => r !== '' && !REMINDERS.some((re) => re.test(r)))
 }
 
 function energyType(value: string, where: string): EnergyType {
@@ -224,7 +271,7 @@ export function normalizeCard(raw: RawCard): CardText {
     if (!Number.isInteger(hp) || hp <= 0) throw new Error(`Pokémon has invalid HP "${raw.hp}"`)
     const abilities: Ability[] = (raw.abilities ?? []).map((a) => ({
       name: cleanText(a.name),
-      text: cleanText(a.text),
+      text: cleanEffect(a.text),
     }))
     const attacks: Attack[] = (raw.attacks ?? []).map((a) => ({
       name: cleanText(a.name),
@@ -233,7 +280,7 @@ export function normalizeCard(raw: RawCard): CardText {
         .filter((t) => t !== 'Free')
         .map((t) => energyType(t, `attack ${a.name}`)),
       damage: a.damage ?? '',
-      text: cleanText(a.text ?? ''),
+      text: cleanEffect(a.text ?? ''),
     }))
     const weakness = raw.weaknesses?.[0]?.type
     const resistance = raw.resistances?.[0]?.type
@@ -285,7 +332,8 @@ export function normalizeCard(raw: RawCard): CardText {
 
 /** Two prints are the same card when this key matches. */
 export function gameTextKey(card: CardText): string {
-  return JSON.stringify(card)
+  // Rules compare as one text: sources split the same text into paragraphs differently.
+  return JSON.stringify({ ...card, rules: card.rules.join(' ') })
 }
 
 // ---- Build ----
@@ -303,10 +351,12 @@ interface Print {
  * 0 for regular set rarities, 1 for promos, 2 for alternate arts (full arts, illustration
  * rares, shinies, …). The display print is the newest print of the lowest rank.
  */
-const REGULAR_RARITIES = ['Common', 'Uncommon', 'Rare', 'Double Rare', 'ACE SPEC Rare']
+const REGULAR_RARITIES = ['common', 'uncommon', 'rare', 'double rare', 'ace spec rare']
 function rarityRank(rarity: string | undefined): number {
-  if (rarity === undefined || REGULAR_RARITIES.includes(rarity)) return 0
-  return rarity === 'Promo' ? 1 : 2
+  // Case varies between sources ("Double Rare", "Double rare").
+  const r = rarity?.toLowerCase()
+  if (r === undefined || REGULAR_RARITIES.includes(r)) return 0
+  return r === 'promo' ? 1 : 2
 }
 
 /** The print the site and solver use for a card: newest regular-rarity print. */
@@ -328,11 +378,12 @@ export function buildCardData(
   upstream: Upstream,
   overrides: Overrides,
   config: Config,
-  source: CardData['source'],
+  sources: CardData['sources'],
+  builtAt: string,
 ): BuildResult {
   const warnings: string[] = []
   const errors: string[] = []
-  const { sets, cards } = applyOverrides(upstream, overrides, warnings, errors)
+  const { sets, cards } = applyOverrides(upstream, overrides, config, warnings, errors)
 
   // Release order, oldest first; ties by ID so the output is deterministic.
   const orderedSets = [...sets].sort((a, b) =>
@@ -420,31 +471,23 @@ export function buildCardData(
 
   warnings.push(...findSuspiciousSplits(result))
 
-  // Sets that any print uses, with their decklist codes. Check that "CODE NUMBER" is unique.
-  const usedSetIds = new Set(
-    result.flatMap((c) => c.prints.map((p) => p.slice(0, p.lastIndexOf('-')))),
-  )
-  const outSets: SetInfo[] = orderedSets
-    .filter((s) => usedSetIds.has(s.id))
-    .map((s) => ({
-      id: s.id,
-      code: s.ptcgoCode ?? s.id.toUpperCase(),
-      name: s.name,
-      released: s.releaseDate.replaceAll('/', '-'),
-    }))
-  const codeOf = new Map(outSets.map((s) => [s.id, s.code]))
-  const seen = new Map<string, string>()
+  // Print IDs must be unique, or a decklist line would be ambiguous.
+  const owner = new Map<string, string>()
   for (const card of result) {
     for (const print of card.prints) {
-      const dash = print.lastIndexOf('-')
-      const key = `${codeOf.get(print.slice(0, dash))} ${print.slice(dash + 1)}`
-      const other = seen.get(key)
-      if (other && other !== card.id)
-        warnings.push(
-          `set code + number "${key}" is used by two different cards (${other}, ${card.id})`,
-        )
-      seen.set(key, card.id)
+      const other = owner.get(print)
+      if (other) errors.push(`print ID ${print} is used twice (${other}, ${card.name})`)
+      owner.set(print, card.name)
     }
+  }
+
+  // Sets that any print uses. Codes shared by several sets (subsets) list the first.
+  const usedCodes = new Set(result.flatMap((c) => c.prints.map((p) => splitPrintId(p).code)))
+  const outSets: SetInfo[] = []
+  for (const s of orderedSets) {
+    const code = s.ptcgoCode!.toUpperCase()
+    if (!usedCodes.has(code) || outSets.some((o) => o.code === code)) continue
+    outSets.push({ code, name: s.name, released: s.releaseDate.replaceAll('/', '-') })
   }
   for (const [alias, target] of Object.entries(config.setCodeAliases)) {
     if (!outSets.some((s) => s.code === target))
@@ -454,7 +497,8 @@ export function buildCardData(
   return {
     data: {
       version: CARD_DATA_VERSION,
-      source,
+      sources,
+      builtAt,
       oldestLegalMark: config.oldestLegalMark,
       setCodeAliases: config.setCodeAliases,
       sets: outSets,
@@ -476,7 +520,7 @@ function findSuspiciousSplits(cards: Card[]): string[] {
   for (const card of cards) {
     const key =
       card.kind === 'pokemon'
-        ? `${card.name}|${card.types.join(',')}|${card.hp}|${card.attacks.map((a) => a.name).join(',')}|${card.abilities.map((a) => a.name).join(',')}`
+        ? `${card.name}|${card.types.join(',')}|${card.hp}|${card.attacks.map((a) => `${a.name}:${a.cost.join('+')}:${a.damage}`).join(',')}|${card.abilities.map((a) => a.name).join(',')}`
         : `${card.kind}|${card.name}`
     byKey.set(key, [...(byKey.get(key) ?? []), card])
   }

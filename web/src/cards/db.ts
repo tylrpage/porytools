@@ -1,11 +1,6 @@
+import { printId, printLabel } from './ids.ts'
 import { isStandardLegal } from './legality.ts'
-import {
-  CARD_DATA_VERSION,
-  type Card,
-  type CardData,
-  type EnergyType,
-  type SetInfo,
-} from './types.ts'
+import { CARD_DATA_VERSION, type Card, type CardData, type EnergyType } from './types.ts'
 
 /** Lowercase, straight quotes, no accents, single spaces: for forgiving name matching. */
 export function nameKey(name: string): string {
@@ -38,28 +33,20 @@ export const ENERGY_SYMBOLS: Record<string, EnergyType> = {
 export class CardDb {
   readonly data: CardData
   private readonly byId = new Map<string, Card>()
+  /** Every print ID ("TWM-128") → its card. */
   private readonly byPrint = new Map<string, Card>()
-  /** "TWM 128" → "sv6-128" */
-  private readonly byCode = new Map<string, string>()
   private readonly byName = new Map<string, Card[]>()
-  private readonly setById = new Map<string, SetInfo>()
 
   constructor(data: CardData) {
     if (data.version !== CARD_DATA_VERSION) {
       throw new Error(`cards.json version ${data.version}, expected ${CARD_DATA_VERSION}`)
     }
     this.data = data
-    for (const set of data.sets) this.setById.set(set.id, set)
     for (const card of data.cards) {
       this.byId.set(card.id, card)
       const key = nameKey(card.name)
       this.byName.set(key, [...(this.byName.get(key) ?? []), card])
-      for (const print of card.prints) {
-        this.byPrint.set(print, card)
-        const { set, number } = splitPrintId(print)
-        const code = this.setById.get(set)?.code
-        if (code) this.byCode.set(codeKey(code, number), print)
-      }
+      for (const print of card.prints) this.byPrint.set(print, card)
     }
   }
 
@@ -71,16 +58,16 @@ export class CardDb {
     return this.byId.get(id)
   }
 
-  /** The card a print ID (e.g. "sv6-128") belongs to. */
+  /** The card a print ID (e.g. "TWM-128") belongs to. */
   cardOfPrint(printId: string): Card | undefined {
     return this.byPrint.get(printId)
   }
 
-  /** Resolve a decklist set code and number (e.g. "TWM", "128") to a print ID. */
+  /** The print ID a decklist set code and number name ("SVP", "007" → "PR-SV-7"), if known. */
   printByCode(code: string, number: string): string | undefined {
     const upper = code.toUpperCase()
-    const resolved = this.data.setCodeAliases[upper] ?? upper
-    return this.byCode.get(codeKey(resolved, number))
+    const id = printId(this.data.setCodeAliases[upper] ?? upper, number)
+    return this.byPrint.has(id) ? id : undefined
   }
 
   /**
@@ -92,26 +79,14 @@ export class CardDb {
     return this.byName.get(key) ?? this.byName.get(key.replace(/\s*\([^)]*\)$/, '')) ?? []
   }
 
-  /** "TWM 128" for a print ID, or the ID itself if its set has no code. */
-  printLabel(printId: string): string {
-    const { set, number } = splitPrintId(printId)
-    const code = this.setById.get(set)?.code
-    return code ? `${code} ${number}` : printId
+  /** "TWM 128" for "TWM-128". */
+  printLabel(id: string): string {
+    return printLabel(id)
   }
 
   isLegal(card: Card, oldestLegalMark = this.data.oldestLegalMark): boolean {
     return isStandardLegal(card, oldestLegalMark)
   }
-}
-
-export function splitPrintId(printId: string): { set: string; number: string } {
-  const dash = printId.lastIndexOf('-')
-  return { set: printId.slice(0, dash), number: printId.slice(dash + 1) }
-}
-
-/** Numbers match without leading zeros ("SVP 007" = "SVP 7"). */
-function codeKey(code: string, number: string): string {
-  return `${code.toUpperCase()} ${number.replace(/^0+(?=\w)/, '').toUpperCase()}`
 }
 
 /**

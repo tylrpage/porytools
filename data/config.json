@@ -1,7 +1,9 @@
 {
-  "$comment": "oldestLegalMark: the oldest Standard-legal regulation mark; every newer mark is legal too. Bump it at rotation. setCodeAliases: set codes that decklists use for a set whose upstream code differs.",
+  "$comment": "oldestLegalMark: the oldest Standard-legal regulation mark; every newer mark is legal too. Bump it at rotation. setCodeAliases: set codes decklists use when they differ from PTCG Live's. excludeSets: pokemon-tcg-data set IDs to leave out (Classic Collection shares 30C with 30th Celebration and isn't Standard-legal). tcgdexSets: TCGdex set IDs for sets pokemon-tcg-data lacks.",
   "oldestLegalMark": "H",
   "setCodeAliases": {
     "SVP": "PR-SV"
-  }
+  },
+  "excludeSets": ["me55c"],
+  "tcgdexSets": ["mee", "mep"]
 }

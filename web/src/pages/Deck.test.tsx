@@ -33,7 +33,7 @@ describe('deck page', () => {
   })
 
   it('loads a deck from a share link', async () => {
-    renderAt('/deck?d=1.4sv6-128.56sve-5')
+    renderAt('/deck?d=2.4_TWM-128.56_SVE-5')
     expect(await screen.findByText('60 cards')).toBeInTheDocument()
     expect(screen.getByText('Valid Standard deck')).toBeInTheDocument()
     expect(screen.getByLabelText<HTMLTextAreaElement>('Decklist').value).toContain(
