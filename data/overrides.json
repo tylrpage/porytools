@@ -1,0 +1,21 @@
+{
+  "$comment": "Fixes and additions on top of upstream. patches: fields merged over an upstream card (by ID). sets / cards: sets and cards upstream hasn't added yet, in upstream's format. The build warns when an entry becomes redundant.",
+  "patches": {
+    "me5-42": {
+      "subtypes": ["Basic"]
+    },
+    "me5-115": {
+      "subtypes": ["Stage 2", "MEGA", "ex"]
+    },
+    "sv8pt5-92": {
+      "subtypes": ["Basic", "Tera", "ex"]
+    },
+    "me5-104": {
+      "rules": [
+        "If the Pokémon this card is attached to doesn't have a Rule Box, the attacks it uses do 30 more damage to your opponent's Active Pokémon ex (before applying Weakness and Resistance). (Pokémon ex, Pokémon V, etc. have Rule Boxes.)"
+      ]
+    }
+  },
+  "sets": [],
+  "cards": {}
+}

@@ -22,16 +22,24 @@ Repo, toolchain, and a live (empty) site.
   Every push to `main` deploys.
 - ☑ Site shell: header/nav, footer disclaimer, About page, 404
 
-## M1 — Card data & decklist import ☐
-- ☐ Build-time script: fetch pokemon-tcg-data, filter by legal regulation marks
-  (configurable), emit compact `cards.json` (types, stage, evolves-from, HP, attacks with
-  costs, abilities/rules text, subtypes like ACE SPEC / Supporter / Item / Tool / Stadium)
-- ☐ PTCG Live set-code → data-ID mapping; reprint collapsing; basic energy handling
-- ☐ Override file for cards missing from upstream (new set releases)
-- ☐ Decklist parser: PTCG Live export + Limitless text; clear errors for unknown cards;
-  60-card / 4-copy / 1-ACE-SPEC validation
-- ☐ Deck view page (grouped Pokémon / Trainer / Energy, counts)
-- ☐ Decklist ↔ URL encoding for sharing
+## M1 — Card data & decklist import ◐
+- ☑ Build script (`web/scripts/cards/`, `npm run cards`): fetch pokemon-tcg-data, filter by
+  legal regulation marks (`data/config.json`: `oldestLegalMark`, now `H`), emit compact
+  `web/public/data/cards.json` (committed; one card per line for reviewable diffs)
+- ☑ Set-code → data-ID mapping (upstream codes + aliases); reprint collapsing by game text
+  (older prints legal through a reprint); basic Energy as one always-legal card per type
+- ☑ One display print per card (newest regular rarity): promos, full arts and older prints
+  map to it in the UI, share links and (later) the solver
+- ☑ `data/overrides.json`: patches for upstream gaps (4 so far) + new sets/cards
+- ☑ Decklist parser: PTCG Live export + Limitless text; errors with line numbers;
+  60-card / 4-copy (by name) / 1-ACE-SPEC / Basic Pokémon / legality validation
+- ☑ Deck view page (`/deck`: grouped Pokémon / Trainer / Energy, counts, problems)
+- ☑ Decklist ↔ URL encoding (`/deck?d=1.4sv6-128…`, versioned; any print ID decodes)
+- ◐ **[owner]** Review: overrides approved, first PTCG Live import worked; a few more real
+  Limitless exports would be good
+- ☐ Refresh `cards.json` automatically (scheduled GitHub Action opening a PR) when sets
+  release
+- ☐ Later: "before / after rotation" toggle on the site (the data already supports it)
 
 ## M2 — Probability calculators (first public release) ☐
 All exact math in pure TS, unit-tested against brute force on small decks.
@@ -103,6 +111,9 @@ The foundation for the solver output, replays, and mid-game analysis.
 ---
 
 ## Open questions
-- Which regulation marks are Standard-legal right now (M1 config).
+- Basic Energy spellings seen: PTCG Live `Basic {G} Energy SVE 1`, Limitless
+  `Psychic Energy MEE` (MEE isn't upstream; basic Energy resolves by name).
+- Upstream has no Mega Evolution promo set yet; add it to `data/overrides.json` when
+  decks need one.
 - Exact game-record format (M3 design session).
 - Which meta decks to target first (M5).

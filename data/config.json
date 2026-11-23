@@ -1,0 +1,7 @@
+{
+  "$comment": "oldestLegalMark: the oldest Standard-legal regulation mark; every newer mark is legal too. Bump it at rotation. setCodeAliases: set codes that decklists use for a set whose upstream code differs.",
+  "oldestLegalMark": "H",
+  "setCodeAliases": {
+    "SVP": "PR-SV"
+  }
+}

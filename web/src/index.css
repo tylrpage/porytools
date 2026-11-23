@@ -104,3 +104,103 @@ main {
   font-size: 0.8rem;
   color: var(--muted);
 }
+
+.small {
+  font-size: 0.85rem;
+}
+
+button {
+  font: inherit;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+/* Deck page */
+
+.decklist-input {
+  width: 100%;
+  font:
+    0.9rem/1.45 ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+}
+
+.deck-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.ok {
+  color: #15803d;
+}
+
+.problems {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+
+.problem.error {
+  color: #b91c1c;
+}
+
+.problem.warning {
+  color: #a16207;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ok {
+    color: #4ade80;
+  }
+  .problem.error {
+    color: #f87171;
+  }
+  .problem.warning {
+    color: #facc15;
+  }
+}
+
+.deck-sections h2 {
+  font-size: 1.1rem;
+  margin: 1.25rem 0 0.25rem;
+}
+
+.deck-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.deck-table td {
+  padding: 0.2rem 0.5rem 0.2rem 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.deck-table .count {
+  width: 2rem;
+  text-align: right;
+  padding-right: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.deck-table .print {
+  text-align: right;
+  white-space: nowrap;
+}
