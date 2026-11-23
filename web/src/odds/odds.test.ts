@@ -6,7 +6,6 @@ import {
   chance,
   type Condition,
   drawsBy,
-  expectedMulligans,
   type Group,
   isBasicPokemon,
   mulliganChance,
@@ -168,10 +167,9 @@ describe('exact odds match brute force on a small deck', () => {
 const full = deckOf([4, basic('X')], [6, basic('Y')], [4, item('Z')], [46, item('W')])
 
 describe('60-card decks', () => {
-  it('mulligans match the hypergeometric formula', () => {
+  it('the mulligan chance matches the hypergeometric formula', () => {
     const p = choose(50, 7) / choose(60, 7)
     expect(mulliganChance(full)).toBeCloseTo(p, 12)
-    expect(expectedMulligans(full)).toBeCloseTo(p / (1 - p), 12)
   })
 
   it('without the mulligan rule, ≥1 of 4 in 7 is the textbook number', () => {
@@ -208,7 +206,6 @@ describe('60-card decks', () => {
   it('a deck with no Basics always mulligans', () => {
     const none = deckOf([60, item('W')])
     expect(mulliganChance(none)).toBe(1)
-    expect(expectedMulligans(none)).toBe(Infinity)
     expect(chance(none, [{ group: ids('W'), atLeast: 1 }], 0).p).toBeNaN()
   })
 })

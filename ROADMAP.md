@@ -53,8 +53,8 @@ All exact math in pure TS (`web/src/odds/`), unit-tested against brute force on 
 closed-form hypergeometric values, and Monte Carlo; timed over the 50 real test decklists.
 One engine deals hand, prizes and draws together (exact counting over "piles" of cards),
 so every number below is exact.
-- ☑ Opening hand: P(at least k of card/group in the opening 7), mulligan rate, expected
-  mulligans
+- ☑ Mulligan chance (opening-hand odds and expected mulligans dropped in review: the
+  opening hand only matters for mulligans)
 - ☑ Opening hand **conditioned on no mulligan** (the opener always has a Basic); a toggle
   switches to plain first-7 odds
 - ☑ Prizes: P(n copies prized), P(all copies prized), per-card table

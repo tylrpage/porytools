@@ -47,15 +47,6 @@ export function mulliganChance(deck: readonly DeckEntry[], options: OddsOptions 
 }
 
 /**
- * Expected number of mulligans before a hand with a Basic: redraws are independent, so it's
- * geometric with mean p / (1 − p).
- */
-export function expectedMulligans(deck: readonly DeckEntry[], options: OddsOptions = {}): number {
-  const p = mulliganChance(deck, options)
-  return p >= 1 ? Infinity : p / (1 - p)
-}
-
-/**
  * P(every condition holds) counting the opening hand plus the next `draws` cards. Prizes are
  * dealt in between, so a prized card can't be drawn. `draws = 0` is the opening hand.
  * Card effects that draw or search are not modeled here; that's the solver's job.

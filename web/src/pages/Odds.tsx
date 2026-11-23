@@ -12,7 +12,6 @@ import { builtInGroups, copiesIn, type NamedGroup } from '../odds/groups.ts'
 import {
   chance,
   drawsBy,
-  expectedMulligans,
   HAND_SIZE,
   isBasicPokemon,
   mulliganChance,
@@ -151,7 +150,6 @@ function SettingsBar({
 function Summary({ entries }: { entries: DeckEntry[] }) {
   const basics = entries.filter((e) => isBasicPokemon(e.card)).reduce((n, e) => n + e.count, 0)
   const mulligan = mulliganChance(entries)
-  const expected = expectedMulligans(entries)
   return (
     <dl className="odds-summary">
       <div>
@@ -161,10 +159,6 @@ function Summary({ entries }: { entries: DeckEntry[] }) {
       <div>
         <dt>Mulligan chance</dt>
         <dd>{percent(mulligan)}</dd>
-      </div>
-      <div>
-        <dt>Expected mulligans</dt>
-        <dd>{expected.toFixed(2)}</dd>
       </div>
     </dl>
   )
