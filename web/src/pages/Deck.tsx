@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { useState } from 'react'
+import { Link } from 'react-router'
 import type { CardDb } from '../cards/db.ts'
 import type { Card } from '../cards/types.ts'
 import { useCardDb } from '../cards/useCardDb.ts'
-import { type DeckEntry, type Problem, parseDecklist } from '../deck/parse.ts'
-import { decodeDeck, encodeDeck, formatDecklist, groupBySection } from '../deck/share.ts'
-import { validateDeck } from '../deck/validate.ts'
+import Problems from '../components/Problems.tsx'
+import type { DeckEntry } from '../deck/parse.ts'
+import { groupBySection } from '../deck/share.ts'
+import { useDeckText } from '../deck/useDeckText.ts'
 
 export default function Deck() {
   const state = useCardDb()
@@ -20,26 +21,12 @@ export default function Deck() {
 }
 
 function DeckEditor({ db }: { db: CardDb }) {
-  const [params, setParams] = useSearchParams()
-  // A share link fills the text box once, on first render.
-  const [text, setText] = useState(() => {
-    const shared = params.get('d')
-    return shared ? formatDecklist(decodeDeck(shared, db).lines, db) : ''
-  })
+  const { text, setText, entries, problems, shareParam } = useDeckText(db)
   const [copied, setCopied] = useState(false)
-
-  const { entries, problems } = useMemo(() => {
-    const parsed = parseDecklist(text, db)
-    const checked = parsed.entries.length > 0 ? validateDeck(parsed.entries, db) : []
-    return { entries: parsed.entries, problems: [...parsed.problems, ...checked] }
-  }, [text, db])
 
   const onChange = (value: string) => {
     setText(value)
     setCopied(false)
-    // Keep the address bar a share link for whatever is in the box, prints as written.
-    const parsed = parseDecklist(value, db)
-    setParams(parsed.lines.length > 0 ? { d: encodeDeck(parsed.lines) } : {}, { replace: true })
   }
 
   const copyLink = async () => {
@@ -77,6 +64,7 @@ function DeckEditor({ db }: { db: CardDb }) {
             <button type="button" onClick={copyLink}>
               {copied ? 'Link copied' : 'Copy share link'}
             </button>
+            <Link to={`/odds?d=${shareParam}`}>Odds for this deck →</Link>
           </div>
           <Problems problems={problems} />
           <DeckList entries={entries} db={db} />
@@ -94,20 +82,6 @@ function DeckEditor({ db }: { db: CardDb }) {
         , updated {db.data.builtAt}.
       </p>
     </>
-  )
-}
-
-function Problems({ problems }: { problems: Problem[] }) {
-  if (problems.length === 0) return null
-  return (
-    <ul className="problems">
-      {problems.map((p, i) => (
-        <li key={i} className={`problem ${p.severity}`}>
-          {p.line !== undefined && <span className="muted">Line {p.line}: </span>}
-          {p.message}
-        </li>
-      ))}
-    </ul>
   )
 }
 

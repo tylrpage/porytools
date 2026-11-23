@@ -1,0 +1,539 @@
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
+import type { CardDb } from '../cards/db.ts'
+import { printLabel } from '../cards/ids.ts'
+import { useCardDb } from '../cards/useCardDb.ts'
+import Problems from '../components/Problems.tsx'
+import type { DeckEntry } from '../deck/parse.ts'
+import { groupBySection } from '../deck/share.ts'
+import { useDeckText } from '../deck/useDeckText.ts'
+import { percent } from '../odds/format.ts'
+import { builtInGroups, copiesIn, type NamedGroup } from '../odds/groups.ts'
+import {
+  chance,
+  drawsBy,
+  expectedMulligans,
+  HAND_SIZE,
+  isBasicPokemon,
+  mulliganChance,
+  PRIZE_COUNT,
+  prizeDistribution,
+} from '../odds/odds.ts'
+
+/** Turns offered in the question builder. */
+const MAX_TURN = 6
+
+export default function Odds() {
+  const state = useCardDb()
+  return (
+    <>
+      <h1>Odds</h1>
+      {state.status === 'loading' && <p className="muted">Loading card data…</p>}
+      {state.status === 'error' && <p className="problem error">{state.message}</p>}
+      {state.status === 'ready' && <OddsTool db={state.db} />}
+    </>
+  )
+}
+
+interface Settings {
+  goingFirst: boolean
+  noMulligan: boolean
+}
+
+function OddsTool({ db }: { db: CardDb }) {
+  const deck = useDeckText(db)
+  const [startOpen] = useState(deck.text === '')
+  const [settings, setSettings] = useState<Settings>({ goingFirst: true, noMulligan: true })
+  const [customGroups, setCustomGroups] = useState<NamedGroup[]>([])
+
+  const entries = deck.entries
+  const total = entries.reduce((n, e) => n + e.count, 0)
+  const errors = deck.problems.filter((p) => p.severity === 'error').length
+  const usable =
+    total >= HAND_SIZE + PRIZE_COUNT + MAX_TURN && entries.some((e) => isBasicPokemon(e.card))
+
+  // Keep custom groups to cards still in the deck when the list changes.
+  const groups = useMemo(() => {
+    const inDeck = new Set(entries.map((e) => e.card.id))
+    const custom = customGroups.map((g) => ({
+      ...g,
+      ids: new Set([...g.ids].filter((id) => inDeck.has(id))),
+    }))
+    return { builtIn: builtInGroups(entries), custom }
+  }, [entries, customGroups])
+
+  return (
+    <>
+      <p>
+        Exact odds for your opening hand, prizes and draws. Draws here are only the one at the start
+        of each turn; search and draw effects come with the solver.
+      </p>
+      <details className="deck-input" open={startOpen}>
+        <summary>
+          Decklist{' '}
+          {total > 0 && (
+            <span className="muted">
+              ({total} cards{errors > 0 && `, ${errors} problem(s)`})
+            </span>
+          )}
+        </summary>
+        <textarea
+          className="decklist-input"
+          aria-label="Decklist"
+          value={deck.text}
+          onChange={(e) => deck.setText(e.target.value)}
+          placeholder={'Paste a PTCG Live or Limitless decklist\nPokémon: 12\n4 Dreepy TWM 128\n…'}
+          rows={10}
+          spellCheck={false}
+        />
+        <Problems problems={deck.problems} />
+        {deck.shareParam && <Link to={`/deck?d=${deck.shareParam}`}>View deck →</Link>}
+      </details>
+
+      {!usable && (
+        <p className="muted">
+          {total === 0
+            ? 'Paste a decklist to see its odds.'
+            : 'The odds need a deck with at least one Basic Pokémon and enough cards to deal a hand and prizes.'}
+        </p>
+      )}
+      {usable && (
+        <>
+          {errors > 0 && (
+            <p className="problem warning">
+              The list isn&apos;t a legal Standard deck; the odds use it as listed ({total} cards).
+            </p>
+          )}
+          <SettingsBar settings={settings} onChange={setSettings} />
+          <Summary entries={entries} />
+          <OddsTable
+            entries={entries}
+            groups={[...groups.builtIn, ...groups.custom]}
+            settings={settings}
+          />
+          <CustomGroups entries={entries} groups={customGroups} onChange={setCustomGroups} />
+          <Question
+            entries={entries}
+            groups={[...groups.builtIn, ...groups.custom]}
+            settings={settings}
+          />
+          <PrizeBreakdown
+            entries={entries}
+            groups={[...groups.builtIn, ...groups.custom]}
+            settings={settings}
+          />
+        </>
+      )}
+    </>
+  )
+}
+
+function SettingsBar({
+  settings,
+  onChange,
+}: {
+  settings: Settings
+  onChange: (s: Settings) => void
+}) {
+  return (
+    <div className="odds-settings">
+      <div className="segmented" role="group" aria-label="Turn order">
+        {[true, false].map((first) => (
+          <button
+            key={String(first)}
+            type="button"
+            aria-pressed={settings.goingFirst === first}
+            onClick={() => onChange({ ...settings, goingFirst: first })}
+          >
+            Going {first ? 'first' : 'second'}
+          </button>
+        ))}
+      </div>
+      <label>
+        <input
+          type="checkbox"
+          checked={settings.noMulligan}
+          onChange={(e) => onChange({ ...settings, noMulligan: e.target.checked })}
+        />{' '}
+        Redraw mulligans (every opening hand has a Basic)
+      </label>
+    </div>
+  )
+}
+
+function Summary({ entries }: { entries: DeckEntry[] }) {
+  const basics = entries.filter((e) => isBasicPokemon(e.card)).reduce((n, e) => n + e.count, 0)
+  const mulligan = mulliganChance(entries)
+  const expected = expectedMulligans(entries)
+  return (
+    <dl className="odds-summary">
+      <div>
+        <dt>Basic Pokémon</dt>
+        <dd>{basics}</dd>
+      </div>
+      <div>
+        <dt>Mulligan chance</dt>
+        <dd>{percent(mulligan)}</dd>
+      </div>
+      <div>
+        <dt>Expected mulligans</dt>
+        <dd>{expected.toFixed(2)}</dd>
+      </div>
+    </dl>
+  )
+}
+
+interface Row {
+  key: string
+  name: string
+  count: number
+  ids: ReadonlySet<string>
+}
+
+function OddsTable({
+  entries,
+  groups,
+  settings,
+}: {
+  entries: DeckEntry[]
+  groups: NamedGroup[]
+  settings: Settings
+}) {
+  const sections = groupBySection(entries)
+  const options = { noMulligan: settings.noMulligan }
+  const rowOdds = (row: Row) => {
+    const atLeastOne = [{ group: row.ids, atLeast: 1 }]
+    const prizes = prizeDistribution(entries, row.ids, options)
+    return {
+      opening: chance(entries, atLeastOne, 0, options).p,
+      turn1: chance(entries, atLeastOne, drawsBy(1, settings.goingFirst), options).p,
+      turn2: chance(entries, atLeastOne, drawsBy(2, settings.goingFirst), options).p,
+      anyPrized: 1 - prizes[0],
+      allPrized: row.count <= PRIZE_COUNT ? prizes[row.count] : NaN,
+    }
+  }
+  const renderRow = (row: Row) => {
+    const o = rowOdds(row)
+    return (
+      <tr key={row.key}>
+        <td className="count">{row.count}</td>
+        <th scope="row">{row.name}</th>
+        <td>{percent(o.opening)}</td>
+        <td>{percent(o.turn1)}</td>
+        <td>{percent(o.turn2)}</td>
+        <td>{percent(o.anyPrized)}</td>
+        <td>{percent(o.allPrized)}</td>
+      </tr>
+    )
+  }
+  const cardRows = (list: DeckEntry[]) =>
+    list.map((e) => ({
+      key: `card:${e.card.id}`,
+      name: e.card.name,
+      count: e.count,
+      ids: new Set([e.card.id]),
+    }))
+  const groupRows = groups
+    .filter((g) => g.ids.size > 0)
+    .map((g) => ({ key: g.key, name: g.name, count: copiesIn(entries, g.ids), ids: g.ids }))
+
+  return (
+    <section>
+      <h2>At least one copy</h2>
+      <p className="muted small">
+        Chance of having seen at least one copy by the start of your turn, after its draw.
+        {settings.goingFirst && ' Going first, turn 1 has no draw.'} Prized: at least one / every
+        copy in your prizes.
+      </p>
+      <div className="table-scroll">
+        <table className="odds-table">
+          <thead>
+            <tr>
+              <th className="count">#</th>
+              <th>Card</th>
+              <th>Opening hand</th>
+              <th>Turn 1</th>
+              <th>Turn 2</th>
+              <th>Prized</th>
+              <th>All prized</th>
+            </tr>
+          </thead>
+          {sections.map(([section, list]) =>
+            list.length === 0 ? null : (
+              <tbody key={section}>
+                <tr className="section-row">
+                  <th colSpan={7}>{section}</th>
+                </tr>
+                {cardRows(list).map(renderRow)}
+              </tbody>
+            ),
+          )}
+          {groupRows.length > 0 && (
+            <tbody>
+              <tr className="section-row">
+                <th colSpan={7}>Groups</th>
+              </tr>
+              {groupRows.map(renderRow)}
+            </tbody>
+          )}
+        </table>
+      </div>
+    </section>
+  )
+}
+
+function CustomGroups({
+  entries,
+  groups,
+  onChange,
+}: {
+  entries: DeckEntry[]
+  groups: NamedGroup[]
+  onChange: (groups: NamedGroup[]) => void
+}) {
+  const update = (i: number, group: NamedGroup) =>
+    onChange(groups.map((g, j) => (j === i ? group : g)))
+  const add = () => {
+    const n = groups.reduce((max, g) => Math.max(max, Number(g.key.split('-')[1])), 0) + 1
+    onChange([...groups, { key: `custom-${n}`, name: `Group ${n}`, ids: new Set() }])
+  }
+  return (
+    <section>
+      <h2>Custom groups</h2>
+      <p className="muted small">
+        Count several cards as one, e.g. every Pokémon that can start, or all your search Items.
+      </p>
+      {groups.map((g, i) => (
+        <fieldset key={g.key} className="group-editor">
+          <legend>
+            <input
+              aria-label="Group name"
+              value={g.name}
+              onChange={(e) => update(i, { ...g, name: e.target.value })}
+            />
+            <button type="button" onClick={() => onChange(groups.filter((_, j) => j !== i))}>
+              Remove
+            </button>
+          </legend>
+          <div className="group-cards">
+            {entries.map((e) => (
+              <label key={e.card.id}>
+                <input
+                  type="checkbox"
+                  checked={g.ids.has(e.card.id)}
+                  onChange={(ev) => {
+                    const ids = new Set(g.ids)
+                    if (ev.target.checked) ids.add(e.card.id)
+                    else ids.delete(e.card.id)
+                    update(i, { ...g, ids })
+                  }}
+                />{' '}
+                {e.count} {e.card.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+      <button type="button" onClick={add}>
+        New group
+      </button>
+    </section>
+  )
+}
+
+interface Option {
+  key: string
+  label: string
+  ids: ReadonlySet<string>
+}
+
+/** Cards, then groups, as choices for a question. Same-name cards get their print label. */
+function groupOptions(entries: DeckEntry[], groups: NamedGroup[]): Option[] {
+  const names = new Map<string, number>()
+  for (const e of entries) names.set(e.card.name, (names.get(e.card.name) ?? 0) + 1)
+  return [
+    ...entries.map((e) => ({
+      key: `card:${e.card.id}`,
+      label:
+        (names.get(e.card.name) ?? 0) > 1
+          ? `${e.card.name} (${printLabel(e.card.id)})`
+          : e.card.name,
+      ids: new Set([e.card.id]),
+    })),
+    ...groups.filter((g) => g.ids.size > 0).map((g) => ({ key: g.key, label: g.name, ids: g.ids })),
+  ]
+}
+
+interface ConditionState {
+  key: string
+  atLeast: number
+}
+
+function Question({
+  entries,
+  groups,
+  settings,
+}: {
+  entries: DeckEntry[]
+  groups: NamedGroup[]
+  settings: Settings
+}) {
+  const options = groupOptions(entries, groups)
+  const [conditions, setConditions] = useState<ConditionState[]>([
+    { key: options[0].key, atLeast: 1 },
+  ])
+  // 0 = opening hand.
+  const [turn, setTurn] = useState(2)
+
+  // The deck can change under a question: fall back to the first card, clamp counts.
+  const resolved = conditions.map((c) => {
+    const option = options.find((o) => o.key === c.key) ?? options[0]
+    return { option, atLeast: Math.min(c.atLeast, copiesIn(entries, option.ids)) }
+  })
+  const draws = turn === 0 ? 0 : drawsBy(turn, settings.goingFirst)
+  const { p } = chance(
+    entries,
+    resolved.map((c) => ({ group: c.option.ids, atLeast: c.atLeast })),
+    draws,
+    { noMulligan: settings.noMulligan },
+  )
+
+  const update = (i: number, c: ConditionState) =>
+    setConditions(conditions.map((old, j) => (j === i ? c : old)))
+
+  return (
+    <section>
+      <h2>Ask a question</h2>
+      <div className="question">
+        {resolved.map((c, i) => (
+          <div key={i} className="condition">
+            <span>{i === 0 ? 'At least' : 'and at least'}</span>
+            <select
+              aria-label="How many"
+              value={c.atLeast}
+              onChange={(e) => update(i, { key: c.option.key, atLeast: Number(e.target.value) })}
+            >
+              {Array.from({ length: Math.min(copiesIn(entries, c.option.ids), 7) }, (_, n) => (
+                <option key={n + 1}>{n + 1}</option>
+              ))}
+            </select>
+            <select
+              aria-label="Card or group"
+              value={c.option.key}
+              onChange={(e) => update(i, { key: e.target.value, atLeast: 1 })}
+            >
+              <optgroup label="Cards">
+                {options
+                  .filter((o) => o.key.startsWith('card:'))
+                  .map((o) => (
+                    <option key={o.key} value={o.key}>
+                      {o.label}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Groups">
+                {options
+                  .filter((o) => !o.key.startsWith('card:'))
+                  .map((o) => (
+                    <option key={o.key} value={o.key}>
+                      {o.label}
+                    </option>
+                  ))}
+              </optgroup>
+            </select>
+            {conditions.length > 1 && (
+              <button
+                type="button"
+                aria-label="Remove condition"
+                onClick={() => setConditions(conditions.filter((_, j) => j !== i))}
+              >
+                ×
+              </button>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => setConditions([...conditions, { key: options[0].key, atLeast: 1 }])}
+        >
+          + Add card or group
+        </button>
+        <div className="condition">
+          <span>by</span>
+          <select
+            aria-label="By when"
+            value={turn}
+            onChange={(e) => setTurn(Number(e.target.value))}
+          >
+            <option value={0}>the opening hand</option>
+            {Array.from({ length: MAX_TURN }, (_, t) => (
+              <option key={t + 1} value={t + 1}>
+                your turn {t + 1}
+              </option>
+            ))}
+          </select>
+          <span className="muted small">
+            ({HAND_SIZE} + {draws} cards seen)
+          </span>
+        </div>
+        <p className="answer" aria-live="polite">
+          {percent(p)}
+        </p>
+      </div>
+    </section>
+  )
+}
+
+function PrizeBreakdown({
+  entries,
+  groups,
+  settings,
+}: {
+  entries: DeckEntry[]
+  groups: NamedGroup[]
+  settings: Settings
+}) {
+  const options = groupOptions(entries, groups)
+  const [key, setKey] = useState(options[0].key)
+  const option = options.find((o) => o.key === key) ?? options[0]
+  const dist = prizeDistribution(entries, option.ids, { noMulligan: settings.noMulligan })
+  const copies = copiesIn(entries, option.ids)
+  return (
+    <section>
+      <h2>Prizes</h2>
+      <p>
+        How many of{' '}
+        <select
+          aria-label="Prized card or group"
+          value={option.key}
+          onChange={(e) => setKey(e.target.value)}
+        >
+          {options.map((o) => (
+            <option key={o.key} value={o.key}>
+              {o.label}
+            </option>
+          ))}
+        </select>{' '}
+        <span className="muted">({copies} in deck)</span> end up prized
+      </p>
+      <table className="odds-table prize-table">
+        <thead>
+          <tr>
+            <th>Prized</th>
+            {dist.map((_, n) => (
+              <th key={n}>{n}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Chance</th>
+            {dist.map((p, n) => (
+              <td key={n}>{percent(p)}</td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  )
+}

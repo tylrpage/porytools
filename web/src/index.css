@@ -87,6 +87,8 @@ a {
 
 main {
   flex: 1;
+  /* Let wide tables scroll inside their own box instead of widening the page. */
+  min-width: 0;
   padding: 1.5rem 0 3rem;
 }
 
@@ -203,4 +205,172 @@ button:hover {
 .deck-table .print {
   text-align: right;
   white-space: nowrap;
+}
+
+/* Odds page */
+
+.deck-input {
+  margin: 1rem 0;
+}
+
+.deck-input summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.odds-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  margin: 1rem 0;
+}
+
+.segmented {
+  display: inline-flex;
+}
+
+.segmented button {
+  border-radius: 0;
+}
+
+.segmented button:first-child {
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.segmented button:last-child {
+  border-radius: 0 0.375rem 0.375rem 0;
+  margin-left: -1px;
+}
+
+.segmented button[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.odds-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
+  margin: 1rem 0;
+}
+
+.odds-summary div {
+  display: flex;
+  flex-direction: column;
+}
+
+.odds-summary dt {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.odds-summary dd {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+section h2 {
+  font-size: 1.15rem;
+  margin: 2rem 0 0.25rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.odds-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.odds-table th,
+.odds-table td {
+  padding: 0.2rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.odds-table thead th {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.odds-table tbody th[scope='row'] {
+  text-align: left;
+  font-weight: normal;
+  white-space: normal;
+  min-width: 8rem;
+}
+
+.odds-table thead th:nth-child(2) {
+  text-align: left;
+}
+
+.odds-table .section-row th {
+  text-align: left;
+  padding-top: 0.75rem;
+  font-weight: 600;
+}
+
+.prize-table {
+  width: auto;
+}
+
+.group-editor {
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  margin: 0.5rem 0;
+}
+
+.group-editor legend {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.group-editor input:not([type]),
+select {
+  font: inherit;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.group-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0.1rem 1rem;
+  font-size: 0.9rem;
+}
+
+.question {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.condition {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.answer {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0.25rem 0;
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
 }

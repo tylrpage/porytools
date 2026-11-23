@@ -13,6 +13,7 @@ export default function Layout() {
             Home
           </NavLink>
           <NavLink to="/deck">Deck</NavLink>
+          <NavLink to="/odds">Odds</NavLink>
           <NavLink to="/about">About</NavLink>
         </nav>
       </header>

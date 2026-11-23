@@ -48,16 +48,24 @@ Repo, toolchain, and a live (empty) site.
   release
 - ☐ Later: "before / after rotation" toggle on the site (the data already supports it)
 
-## M2 — Probability calculators (first public release) ☐
-All exact math in pure TS, unit-tested against brute force on small decks.
-- ☐ Opening hand: P(at least k of card/group in the opening 7), mulligan rate, expected
+## M2 — Probability calculators (first public release) ◐
+All exact math in pure TS (`web/src/odds/`), unit-tested against brute force on small decks,
+closed-form hypergeometric values, and Monte Carlo; timed over the 50 real test decklists.
+One engine deals hand, prizes and draws together (exact counting over "piles" of cards),
+so every number below is exact.
+- ☑ Opening hand: P(at least k of card/group in the opening 7), mulligan rate, expected
   mulligans
-- ☐ Opening hand **conditioned on no mulligan** (the opener always has a Basic)
-- ☐ Prizes: P(n copies prized), P(all copies prized), per-card table
-- ☐ By-turn-N: P(seen card/group by turn N), going first vs second (accounting for
-  prizes and the first-turn draw)
-- ☐ Card groups ("any Basic", "any draw Supporter", custom groups)
-- ☐ Polish + launch: mobile layout, share links, analytics on
+- ☑ Opening hand **conditioned on no mulligan** (the opener always has a Basic); a toggle
+  switches to plain first-7 odds
+- ☑ Prizes: P(n copies prized), P(all copies prized), per-card table
+- ☑ By-turn-N: P(seen card/group by your turn N), going first vs second (prized cards
+  can't be drawn; turn 1 going first has no draw)
+- ☑ Card groups: built-ins (Basic Pokémon, Pokémon, Supporters, draw Supporters by card
+  text, Items, Energy, Basic Energy) and custom groups; "and" questions over several
+- ☐ **[owner]** Review: numbers vs your intuition, turn numbering ("your turn N"), the
+  draw-Supporter list, page layout
+- ☐ Polish + launch: check on a real phone, share links for custom groups and questions,
+  analytics on
 
 ## M3 — Game state & event-log format (design with owner) ☐
 The foundation for the solver output, replays, and mid-game analysis.
