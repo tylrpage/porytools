@@ -5,7 +5,7 @@ porytools.com. Status: ☐ todo · ◐ in progress · ☑ done.
 
 ---
 
-## M0 — Foundations ◐
+## M0 — Foundations ☑
 Repo, toolchain, and a live (empty) site.
 - ☑ `git init`, remote `tylrpage/porytools`, `.gitignore`, MIT license, README with
   disclaimer
@@ -15,10 +15,11 @@ Repo, toolchain, and a live (empty) site.
   pipeline), `effects/` (card effect YAML)
 - ☑ GitHub Actions CI: typecheck, lint, format check, test, build on every PR and push to
   `main`
-- ◐ **[owner]** Cloudflare: add `porytools.com` as a zone, then switch the Porkbun
-  nameservers to the two Cloudflare ones (nameservers switched; waiting on propagation)
-- ☐ **[owner + me]** Cloudflare Pages project connected to the GitHub repo (build
-  `web/`), custom domain, Web Analytics
+- ☑ **[owner]** Cloudflare: add `porytools.com` as a zone, then switch the Porkbun
+  nameservers to the two Cloudflare ones
+- ☑ **[owner + me]** Cloudflare Pages project connected to the GitHub repo (build
+  `web/`, root dir `web`, output `dist`, `NODE_VERSION=24`), custom domain, Web Analytics.
+  Every push to `main` deploys.
 - ☑ Site shell: header/nav, footer disclaimer, About page, 404
 
 ## M1 — Card data & decklist import ☐
@@ -102,5 +103,6 @@ The foundation for the solver output, replays, and mid-game analysis.
 ---
 
 ## Open questions
+- Which regulation marks are Standard-legal right now (M1 config).
 - Exact game-record format (M3 design session).
 - Which meta decks to target first (M5).
