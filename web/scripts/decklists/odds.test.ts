@@ -29,7 +29,7 @@ describe('odds on the real test decklists', () => {
       ]
       for (const ids of rows) {
         const one = [{ group: ids, atLeast: 1 }]
-        const ps = [0, drawsBy(1, false), drawsBy(2, false)].map((d) => chance(deck, one, d).p)
+        const ps = [0, drawsBy(1), drawsBy(2)].map((d) => chance(deck, one, d).p)
         expect(ps[0]).toBeLessThanOrEqual(ps[1] + 1e-12)
         expect(ps[1]).toBeLessThanOrEqual(ps[2] + 1e-12)
         const dist = prizeDistribution(deck, ids)

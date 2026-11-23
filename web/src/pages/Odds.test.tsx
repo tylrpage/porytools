@@ -35,20 +35,19 @@ describe('odds page', () => {
     const mulligan = choose(52, 7) / choose(60, 7)
     expect(screen.getByText('Mulligan chance').nextSibling?.textContent).toBe(pct(mulligan))
 
-    // Plain first-7 odds for Ultra Ball, once the mulligan rule is switched off.
+    // Plain odds for Ultra Ball by turn 1 (8 cards), once the mulligan rule is off.
     fireEvent.click(screen.getByLabelText(/Redraw mulligans/))
     const row = screen.getByRole('row', { name: /Ultra Ball/ })
-    const opening = within(row).getAllByRole('cell')[1].textContent
-    expect(opening).toBe(pct(1 - choose(56, 7) / choose(60, 7)))
+    const turn1 = within(row).getAllByRole('cell')[1].textContent
+    expect(turn1).toBe(pct(1 - choose(56, 8) / choose(60, 8)))
   })
 
-  it('answers a question and updates with the turn order', async () => {
+  it('answers a question and updates with the turn', async () => {
     renderAt(LINK)
     await screen.findByText('Mulligan chance')
     const answer = document.querySelector('.answer')!
-    const goingFirst = answer.textContent
-    fireEvent.click(screen.getByRole('button', { name: 'Going second' }))
-    // One more card seen by turn 2 going second.
-    expect(Number.parseFloat(answer.textContent!)).toBeGreaterThan(Number.parseFloat(goingFirst!))
+    const byTurn2 = answer.textContent
+    fireEvent.change(screen.getByLabelText('By when'), { target: { value: '4' } })
+    expect(Number.parseFloat(answer.textContent!)).toBeGreaterThan(Number.parseFloat(byTurn2!))
   })
 })

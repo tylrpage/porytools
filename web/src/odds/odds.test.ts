@@ -235,20 +235,19 @@ describe('Monte Carlo agrees on a 60-card deck', () => {
     for (let t = 0; t < trials; t++) {
       do shuffle()
       while (!cards.slice(0, 7).some((id) => id === 'X' || id === 'Y'))
-      // Hand 0–6, prizes 7–12, draws 13–14 (turn 2 going first).
+      // Hand 0–6, prizes 7–12, draws 13–14 (by your turn 2).
       const seen = [...cards.slice(0, 7), ...cards.slice(13, 15)]
       if (seen.filter((id) => id === 'X').length >= 2) hits++
     }
-    const exact = chance(full, [{ group: ids('X'), atLeast: 2 }], drawsBy(3, true)).p
+    const exact = chance(full, [{ group: ids('X'), atLeast: 2 }], drawsBy(2)).p
     // ~4 standard errors at p ≈ 0.2.
     expect(Math.abs(hits / trials - exact)).toBeLessThan(0.005)
   })
 })
 
 describe('drawsBy', () => {
-  it('going first skips the turn-1 draw', () => {
-    expect(drawsBy(1, true)).toBe(0)
-    expect(drawsBy(1, false)).toBe(1)
-    expect(drawsBy(3, true)).toBe(2)
+  it('both players draw on their first turn', () => {
+    expect(drawsBy(1)).toBe(1)
+    expect(drawsBy(3)).toBe(3)
   })
 })

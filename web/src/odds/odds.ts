@@ -30,9 +30,12 @@ export interface OddsOptions {
   prizeCount?: number
 }
 
-/** Draws at the start of your turns up to and including turn `turn`. Going first skips turn 1's. */
-export function drawsBy(turn: number, goingFirst: boolean): number {
-  return goingFirst ? turn - 1 : turn
+/**
+ * Cards drawn at the start of your turns up to and including your turn `turn`. Both players
+ * draw on their first turn, so going first or second doesn't change it.
+ */
+export function drawsBy(turn: number): number {
+  return turn
 }
 
 /** P(the opening 7 has no Basic Pokémon). */

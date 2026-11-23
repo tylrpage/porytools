@@ -36,14 +36,13 @@ export default function Odds() {
 }
 
 interface Settings {
-  goingFirst: boolean
   noMulligan: boolean
 }
 
 function OddsTool({ db }: { db: CardDb }) {
   const deck = useDeckText(db)
   const [startOpen] = useState(deck.text === '')
-  const [settings, setSettings] = useState<Settings>({ goingFirst: true, noMulligan: true })
+  const [settings, setSettings] = useState<Settings>({ noMulligan: true })
   const [customGroups, setCustomGroups] = useState<NamedGroup[]>([])
 
   const entries = deck.entries
@@ -65,8 +64,8 @@ function OddsTool({ db }: { db: CardDb }) {
   return (
     <>
       <p>
-        Exact odds for your opening hand, prizes and draws. Draws here are only the one at the start
-        of each turn; search and draw effects come with the solver.
+        Exact odds of drawing and prizing your cards. Draws here are only the one at the start of
+        each turn; search and draw effects come with the solver.
       </p>
       <details className="deck-input" open={startOpen}>
         <summary>
@@ -137,18 +136,6 @@ function SettingsBar({
 }) {
   return (
     <div className="odds-settings">
-      <div className="segmented" role="group" aria-label="Turn order">
-        {[true, false].map((first) => (
-          <button
-            key={String(first)}
-            type="button"
-            aria-pressed={settings.goingFirst === first}
-            onClick={() => onChange({ ...settings, goingFirst: first })}
-          >
-            Going {first ? 'first' : 'second'}
-          </button>
-        ))}
-      </div>
       <label>
         <input
           type="checkbox"
@@ -205,9 +192,8 @@ function OddsTable({
     const atLeastOne = [{ group: row.ids, atLeast: 1 }]
     const prizes = prizeDistribution(entries, row.ids, options)
     return {
-      opening: chance(entries, atLeastOne, 0, options).p,
-      turn1: chance(entries, atLeastOne, drawsBy(1, settings.goingFirst), options).p,
-      turn2: chance(entries, atLeastOne, drawsBy(2, settings.goingFirst), options).p,
+      turn1: chance(entries, atLeastOne, drawsBy(1), options).p,
+      turn2: chance(entries, atLeastOne, drawsBy(2), options).p,
       anyPrized: 1 - prizes[0],
       allPrized: row.count <= PRIZE_COUNT ? prizes[row.count] : NaN,
     }
@@ -218,7 +204,6 @@ function OddsTable({
       <tr key={row.key}>
         <td className="count">{row.count}</td>
         <th scope="row">{row.name}</th>
-        <td>{percent(o.opening)}</td>
         <td>{percent(o.turn1)}</td>
         <td>{percent(o.turn2)}</td>
         <td>{percent(o.anyPrized)}</td>
@@ -241,9 +226,8 @@ function OddsTable({
     <section>
       <h2>At least one copy</h2>
       <p className="muted small">
-        Chance of having seen at least one copy by the start of your turn, after its draw.
-        {settings.goingFirst && ' Going first, turn 1 has no draw.'} Prized: at least one / every
-        copy in your prizes.
+        Chance of having seen at least one copy by your turn, after its draw. Prized: at least one /
+        every copy in your prizes.
       </p>
       <div className="table-scroll">
         <table className="odds-table">
@@ -251,7 +235,6 @@ function OddsTable({
             <tr>
               <th className="count">#</th>
               <th>Card</th>
-              <th>Opening hand</th>
               <th>Turn 1</th>
               <th>Turn 2</th>
               <th>Prized</th>
@@ -262,7 +245,7 @@ function OddsTable({
             list.length === 0 ? null : (
               <tbody key={section}>
                 <tr className="section-row">
-                  <th colSpan={7}>{section}</th>
+                  <th colSpan={6}>{section}</th>
                 </tr>
                 {cardRows(list).map(renderRow)}
               </tbody>
@@ -271,7 +254,7 @@ function OddsTable({
           {groupRows.length > 0 && (
             <tbody>
               <tr className="section-row">
-                <th colSpan={7}>Groups</th>
+                <th colSpan={6}>Groups</th>
               </tr>
               {groupRows.map(renderRow)}
             </tbody>
@@ -382,7 +365,6 @@ function Question({
   const [conditions, setConditions] = useState<ConditionState[]>([
     { key: options[0].key, atLeast: 1 },
   ])
-  // 0 = opening hand.
   const [turn, setTurn] = useState(2)
 
   // The deck can change under a question: fall back to the first card, clamp counts.
@@ -390,7 +372,7 @@ function Question({
     const option = options.find((o) => o.key === c.key) ?? options[0]
     return { option, atLeast: Math.min(c.atLeast, copiesIn(entries, option.ids)) }
   })
-  const draws = turn === 0 ? 0 : drawsBy(turn, settings.goingFirst)
+  const draws = drawsBy(turn)
   const { p } = chance(
     entries,
     resolved.map((c) => ({ group: c.option.ids, atLeast: c.atLeast })),
@@ -465,7 +447,6 @@ function Question({
             value={turn}
             onChange={(e) => setTurn(Number(e.target.value))}
           >
-            <option value={0}>the opening hand</option>
             {Array.from({ length: MAX_TURN }, (_, t) => (
               <option key={t + 1} value={t + 1}>
                 your turn {t + 1}

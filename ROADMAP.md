@@ -58,12 +58,13 @@ so every number below is exact.
 - ☑ Opening hand **conditioned on no mulligan** (the opener always has a Basic); a toggle
   switches to plain first-7 odds
 - ☑ Prizes: P(n copies prized), P(all copies prized), per-card table
-- ☑ By-turn-N: P(seen card/group by your turn N), going first vs second (prized cards
-  can't be drawn; turn 1 going first has no draw)
-- ☑ Card groups: built-ins (Basic Pokémon, Pokémon, Supporters, draw Supporters by card
-  text, Items, Energy, Basic Energy) and custom groups; "and" questions over several
-- ☐ **[owner]** Review: numbers vs your intuition, turn numbering ("your turn N"), the
-  draw-Supporter list, page layout
+- ☑ By-turn-N: P(seen card/group by your turn N) (prized cards can't be drawn; both
+  players draw on their first turn, so turn order doesn't change these odds)
+- ☑ Card groups: built-ins (Basic Pokémon, Pokémon, Supporters, Items, Energy, Basic
+  Energy) and custom groups; "and" questions over several
+- ☑ **[owner]** First review: no opening-hand column (it only matters for mulligans),
+  turns start at 1, both players draw on turn 1, no draw-Supporter group
+- ☐ **[owner]** Design guidelines and requested changes (coming)
 - ☐ Polish + launch: check on a real phone, share links for custom groups and questions,
   analytics on
 

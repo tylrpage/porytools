@@ -91,7 +91,8 @@ Leave room for later goals (cards in hand, cards in discard, damage dealt).
   Deck order is unknown again after any shuffle.
 - Practical reporting: lower bound (reasonable fixed policy) + upper bound (clairvoyant).
 - Performance: hands as multisets, transposition tables, dominance pruning, early exit.
-- Rules to get right from day one: going first can't play a Supporter or attack on T1;
+- Rules to get right from day one: both players draw on their first turn; going first
+  can't play a Supporter or attack on T1;
   mulligans; prizes are set aside after the opening hand; once-per-turn limits.
 - Show sample lines alongside odds.
 - Validate Monte Carlo against exact hypergeometric results on simple decks.
