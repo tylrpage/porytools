@@ -14,7 +14,9 @@ are the source of truth once they exist, and TS types are generated from them.
 | Card identity | Cards are **instances** only while they can be tracked. The unordered part of a deck is a pool of counts, and a shuffle ends instances (no one can know it's "the same Pidgey" afterwards). |
 | Copies | When a source doesn't say which copy (or which print), pick one and flag it `guessed`, listing the alternatives. Copies that can't be told apart (same card, same state) are not guesses. Events the source never states, but the rules or a known card effect imply, are flagged `inferred`. |
 | Players | Always two. A goldfish opponent is an empty placeholder. No usernames: the UI says "You" / "Opponent" from the viewpoint (or "Player 1/2" for `"all"`). |
-| Turns | **"Turn N" means that player's Nth turn**, as players say it and as the odds page uses it: `{ "player": 0, "turn": 2 }` is player 0's second turn. Global order comes from the event order. |
+| Derived facts | **State is the table plus the history; everything else is a query.** The state stores only what's physically on the table (zones, stacks, damage counters, Special Conditions). "Supporter played this turn", "came into play this turn", "KO during your opponent's last turn", "under Itchy Pollen" are Rust query functions over the state and its history, like Pichu's `CardQueries`. New card conditions are new code, not new stored fields. |
+| Turns | Stored as **one global number**: turn 1 is the first player's first turn, turn 2 the second player's first, and so on (0 = setup). The UI always shows the player's own count, "Your turn 2", as players say it and as the odds page uses it. |
+| Attacks, Abilities | Attacks by **position** on the card (`"attack": 1`), shown by name. A Pokémon has at most one Ability, so using it needs no index. |
 | Start | A record starts from any **snapshot** (a `State`). A new game is just two decks; setup (coin flip, hands, mulligans, prizes) is logged as events. The M8 board editor produces mid-game snapshots. |
 | Cards | Referenced by print ID **as listed** (`TEF-23`), resolved with `CardDb.cardOfPrint`, like share links. Cards with no known print (an opponent's) use the display print. |
 | Fold | Rust, compiled to WASM for the site, so the solver and the viewer share one implementation. |
@@ -81,7 +83,7 @@ Every action and change may also have:
 | `mulligan` | `player` | Reveal, shuffle back, draw 7. |
 | `placeStart` | `player` | Face-down Active and Bench. |
 | `setPrizes` | `player` | 6 face-down prizes. |
-| `mulliganDraws` | `player`, `count` | Extra cards for the opponent's mulligans. |
+| `mulliganDraws` | `player`, `count` | "May draw a card for each *extra* mulligan their opponent took"; drawn Basics may go to the Bench. |
 | `revealStart` | | Flip the starting Pokémon face up. |
 | `startTurn` | `player` | Includes the draw for turn (or the deck-out loss). |
 | `playCard` | `player`, `card` | Item, Supporter, Stadium, or Tool. |
@@ -89,11 +91,11 @@ Every action and change may also have:
 | `evolve` | `player`, `card`, `onto` | |
 | `attachEnergy` | `player`, `card`, `onto` | The once-per-turn attachment from hand. Attachments by effects are changes inside other actions. |
 | `retreat` | `player`, `pokemon`, `to` | |
-| `useAbility` | `player`, `pokemon`, `ability` (name) | |
-| `trigger` | `player`, `card`, `ability`? | Effects that fire by themselves (on play, on KO…). |
-| `attack` | `player`, `pokemon`, `attack` (name) | |
+| `useAbility` | `player`, `pokemon` | The Ability of the Pokémon's top card (at most one per card). |
+| `trigger` | `player`, `card` | Effects that fire by themselves (on play, on KO…). |
+| `attack` | `player`, `pokemon`, `attack` (position), `from`? | Position in the top card's attacks; `from` is the Tool that grants it (Technical Machine: Fluorite, Core Memory, Mega Rayquaza Cap), indexing that card's attacks. |
 | `checkup` | | Pokémon Checkup between turns. |
-| `knockOut` | `pokemon`, `cause` | `cause`: `attack` (damage from an attack), `counters` (damage counters from an attack or effect), `checkup`, `other`. |
+| `knockOut` | `pokemon` | How it happened is a query: a KO right after an `attack` is "by an attack", inside `checkup` it's from Checkup. |
 | `takePrizes` | `player`, `count` | |
 | `promote` | `player`, `pokemon` | New Active after a KO. |
 | `endTurn` | `player` | Usually `inferred` after an attack. |
@@ -119,7 +121,7 @@ when its identity is unknown to the viewer.
 | `heal` | `pokemon`, `amount` | |
 | `condition` | `pokemon`, `add`? / `remove`? | `asleep`, `confused`, `paralyzed`, `poisoned`, `burned`. |
 | `coinFlip` | `result` | |
-| `addMarker` / `removeMarker` | `marker` / `key` + `on` | See Markers. |
+| `choose` | `what`, `value` | A choice that changes nothing on the table but that later queries need, e.g. "choose a type" for a damage-prevention effect. |
 
 `seen` on `fromDeck` (only in `"all"` records): who saw the cards, `owner` (default) or
 `all` (the card says "reveal it"). Projection uses it. In a player-view record it is
@@ -131,7 +133,7 @@ omitted: if a change names a card, the viewer saw it.
 { "zone": "hand", "player": 0 }
 { "zone": "deck" }          // the pool; also "deckTop", "deckBottom"
 { "zone": "active" }  { "zone": "bench" }  { "zone": "discard" }  { "zone": "prizes" }
-{ "zone": "lostZone" }  { "zone": "stadium" }
+{ "zone": "lostZone" }  { "zone": "stadium" }   // a Legendary Stadium is 2 cards, played together
 { "zone": "pending" }       // being played or looked at, like Live's *Pending positions
 { "zone": "stack", "on": 15 }      // evolve: goes on top of that Pokémon
 { "zone": "attached", "on": 15 }   // Energy, Tools
@@ -158,14 +160,12 @@ zero, `null`), so a new game's start is short:
 State
   phase          setup | play | ended
   firstPlayer    0 | 1 | null
-  turn           { player, turn } | null       current turn
+  turn           n                             global: 0 setup, 1 = first player's T1, 2 = second player's T1…
   cards          id → { owner, card: print | null }   every live instance
   players[2]     PlayerState
-  stadium        id | null                     owner = the card's owner
-  markers        Marker[]
-  thisTurn       TurnFacts
-  prevTurns      TurnFacts[≤2]                 opponent's last turn, then your last turn
+  stadium        id[]                          0, 1, or 2 (Legendary Stadium) cards; owner = the cards' owner
   result         { winner, reason } | null
+  history        the actions so far (the path from the start, plus `start.history`), indexed by turn
 
 PlayerState
   deck           { top: id[], count, contents: [print, count][] | null, bottom: id[] }
@@ -183,21 +183,13 @@ Pokemon
   attached       id[]
   counters       n                             damage counters (damage = 10 × counters)
   conditions     { rotation: asleep|confused|paralyzed|null, poisoned, burned }
-  enteredPlay    { player, turn } | "setup"
-  evolvedOn      { player, turn } | null
   faceDown       bool                          during setup
-
-TurnFacts  (one per turn)
-  turn           { player, turn }
-  played         id[]                          cards played from hand
-  supporter      id | null
-  stadium        id | null                     Stadium played this turn
-  energyAttached n                             attachEnergy actions
-  retreated      bool
-  abilities      [pokemon id, ability name][]
-  attacks        [pokemon id, attack name][]
-  knockOuts      [owner, card print, cause][]
 ```
+
+In the snapshot, `start.history` is an optional list of actions known to have happened
+before the snapshot. They aren't applied (the snapshot already shows their result), but
+queries read them. The M8 board editor uses this for the few facts a query needs that the
+table can't show, e.g. a `knockOut` during the opponent's last turn, for Fezandipiti ex.
 
 `deck.contents` is the pool's exact contents when the viewer knows them (their own deck in a
 new game, or after `lookAtDeck`), else `null`. What a player's unknown cards *could* be (deck
@@ -205,35 +197,39 @@ pool, prizes, the opponent's hand) is derived: decklist minus every known instan
 
 ### Automatic bookkeeping
 
-The fold applies these rule facts itself, because no card changes them:
-- A Basic moved into the Active Spot or Bench from outside play becomes a new Pokémon with
-  `enteredPlay` = the current turn.
-- A card moved onto a `stack` sets `evolvedOn` and clears Special Conditions.
-- A Pokémon leaving the Active Spot clears Special Conditions and markers with `leavesActive`.
-- When a Pokémon's last stack card leaves play, the Pokémon and its markers are removed and
-  its counters are cleared.
-- `startTurn` pushes `thisTurn` into `prevTurns`. `endTurn` removes expired markers.
-- Actions fill `TurnFacts`: `playCard` of a Supporter or Stadium, `attachEnergy`, `retreat`,
-  `useAbility`, `attack`, `knockOut`.
+The fold applies these rulebook facts itself, because no card changes them:
+- A Basic moved into the Active Spot or Bench from outside play becomes a new Pokémon.
+- A card moved onto a `stack` (evolving), or a Pokémon moving to the Bench, clears its
+  Special Conditions ("When a Pokémon evolves or moves to the Bench, it recovers from all
+  Special Conditions").
+- When a Pokémon's last stack card leaves play, the Pokémon is removed and its counters
+  are cleared.
+- `startTurn` advances `turn`.
+
+Effects of attacks also end when a Pokémon evolves or goes to the Bench. Those effects
+aren't stored, so this is handled in the queries (below), not by the fold.
 
 The fold checks only **consistency**: every instance is in exactly one place, IDs are unused
 when created, counts never go negative, and cards in public zones have known identities
 (face-down setup Pokémon and prizes excepted). It does not check legality.
 
-### Markers
+### Queries
 
-Effects with a duration, or one-off facts a card can ask about later:
+Everything the rules or a card asks about that isn't on the table is a **query**: a Rust
+function over the state and its history (`queries.rs`, after Pichu's `CardQueries`).
+Examples:
+- `supporter_played(state)`: this turn's history has a `playCard` of a Supporter.
+- `entered_play_turn(state, pokemon)`: the turn of the change that put its bottom card into
+  play. Evolution legality uses it.
+- `items_locked(state, player)`: during that player's turn, the opponent's previous turn
+  used Budew's Itchy Pollen. Nothing is stored; knowing Budew's attack is enough.
+- `knocked_out_last_turn(state, player)`: a `knockOut` of that player's Pokémon during the
+  opponent's previous turn (Fezandipiti ex).
+- `paralysis_ends(state, pokemon)`: when Paralyzed was added, so it recovers after its
+  owner's next turn.
 
-```jsonc
-{ "key": "budew.itchyPollen", "on": { "player": 0 }, "source": 101,
-  "until": [{ "turnEnds": { "player": 0, "turn": 2 } }] }
-```
-
-- `on`: `{ "player": n }`, `{ "pokemon": id }`, or `"game"`.
-- `until` (any of): `{ "turnEnds": turn }`, `"leavesActive"`, `"leavesPlay"`, `"evolves"`.
-  Empty means it stays until a `removeMarker`. Effects that "last during your opponent's next
-  turn" get a concrete turn when they're added.
-- Keys are `<card>.<effect>` strings, listed in the registry below.
+Queries are the only way rules code and card effects read derived facts. A query may cache
+(the solver will want per-turn summaries), but callers never know.
 
 ## Projection (`"all"` → one player)
 
@@ -243,32 +239,43 @@ opponent is dropped, and `deck.contents` follows the same rule. Each change type
 default for who sees it: `draw` → owner, `fromDeck` → `seen`, `reveal` → `to`, moves into
 public zones → everyone.
 
-## State registry
+## State and query registry
 
-**Every fact the state records, and why.** When a new card needs something that isn't here,
-that's a code change: add a row, then extend the Rust types and the fold. The card-effect
-authoring skill (M4) points here.
+**Every fact the state stores, and every query, with what needs it.** When a new card
+needs something that isn't here, that's a code change: usually a new query (add a row,
+then the Rust function and its test); rarely new table state (only for something physical
+on the table). The card-effect authoring skill (M4) points here.
+
+### Stored (the table)
 
 | Fact | Where | Needed by |
 |---|---|---|
 | Deck pool count, known top/bottom, known contents | `PlayerState.deck` | Draws, searches, Recon Directive (bottom), deck-out |
-| Hand, discard, Lost Zone, prizes | `PlayerState` | Every zone rule; Lost Zone for older cards (cheap) |
+| Hand, discard, Lost Zone, prizes | `PlayerState` | Every zone rule; Lost Zone (out of play, rulebook appendix 8) |
 | Pending zone | `PlayerState.pending` | Cards being played or looked at (Recon Directive's 2) |
 | Mulligan count | `PlayerState.mulligans` | Opponent's extra draws |
-| Evolution stack, attachments | `Pokemon` | Evolution, KO discards, Energy costs, Tools |
+| Evolution stack, attachments | `Pokemon` | Evolution, KO discards, Energy costs, Tools (incl. attacks granted by Tools) |
 | Damage counters | `Pokemon.counters` | KOs, damage goals (M8) |
 | Special Conditions | `Pokemon.conditions` | Checkup; Asleep/Confused/Paralyzed replace each other, Poisoned/Burned stack |
-| Turn it came into play / evolved | `Pokemon.enteredPlay`, `evolvedOn` | No evolving on the turn it came into play or already evolved |
 | Face-down during setup | `Pokemon.faceDown` | Setup |
-| Who goes first, current turn | `State` | Going-first: no Supporter, no attack on turn 1 |
-| Supporter / Stadium / Energy / retreat this turn | `TurnFacts` | Once-per-turn rules |
-| Abilities used this turn (per Pokémon, by name) | `TurnFacts.abilities` | "Once during your turn"; "can't use more than 1 Flip the Script Ability each turn" (Fezandipiti ex) |
-| Attacks used | `TurnFacts.attacks` | "If this Pokémon used X during your last turn" |
-| Cards played from hand | `TurnFacts.played` | "If you played X this turn" |
-| KOs and how they happened, last 2 turns | `TurnFacts.knockOuts` | Fezandipiti ex Flip the Script (KO during opponent's last turn); cards that care about KO by damage |
-| Stadium in play and its owner | `State.stadium` | Replacing it discards to the owner's discard |
+| Who goes first, global turn | `State` | Whose turn; going first: no Supporter, no attack on turn 1 |
+| Stadium cards in play | `State.stadium` | Replacing it discards to the owner's discard; Legendary Stadiums are 2 cards |
 | Result | `State.result` | Win by prizes / no Pokémon / deck-out; ties (Sudden Death) |
-| Marker `budew.itchyPollen` | `State.markers`, on a player | Budew Itchy Pollen: no Items during that player's next turn |
+| History | `State.history`, `start.history` | Every query below |
+
+### Queries (from table + history)
+
+| Query | Reads | Needed by |
+|---|---|---|
+| Supporter / Stadium played, Energy attached, retreated this turn | This turn's actions | Once-per-turn rules |
+| Turn a Pokémon came into play / last evolved | Changes that moved its cards into play | No evolving on its first turn in play or twice in a turn; no evolving on either player's first turn |
+| Ability used this turn (per Pokémon; per Ability name) | This turn's `useAbility` | "Once during your turn"; Fezandipiti ex "can't use more than 1 Flip the Script Ability each turn" |
+| Attacks used | `attack` actions | "If this Pokémon used X during your last turn" |
+| Cards played this turn | `playCard`, `playBasic`, `evolve` | "If you played X this turn" |
+| KOs during a turn, and how | `knockOut` and the action before it | Fezandipiti ex Flip the Script (KO during opponent's last turn); "Knocked Out by damage from an attack" |
+| Items locked | Opponent's last turn: Budew Itchy Pollen | Budew (ASC-16) |
+| Paralysis ends | When Paralyzed was added | Checkup: recovers after its owner's next turn |
+| Prizes remaining | `PlayerState.prizes` | Lillie's Determination (8 cards with exactly 6 left) |
 
 ## Worked examples
 
@@ -364,7 +371,8 @@ is seven unknown instances; their face-down Active is one of them, revealed as B
 **Opponent's turn 1.** Hidden draws stay unknown. Playing a card reveals one of the
 unknown hand cards (they can't be told apart, so this isn't a guess). Dunsparce has two
 cards in Standard and never attacked, so its print is `guessed`. Itchy Pollen's Item lock
-isn't in the log at all; knowing Budew's attack, the importer adds it as `inferred`.
+isn't in the log at all, and it doesn't need to be: `items_locked` finds Budew's attack in
+the history.
 
 ```jsonc
     { "action": { "type": "startTurn", "player": 1, "changes": [
@@ -388,10 +396,8 @@ isn't in the log at all; knowing Budew's attack, the importer adds it as `inferr
     { "action": { "type": "attachEnergy", "player": 1, "card": 104, "onto": 115, "changes": [
       { "type": "reveal", "cards": { "104": "MEE-2" }, "to": "all" },
       { "type": "move", "cards": [104], "to": { "zone": "attached", "on": 115 } } ] } },
-    { "action": { "type": "attack", "player": 1, "pokemon": 101, "attack": "Itchy Pollen", "changes": [
-      { "type": "damage", "pokemon": 4, "amount": 10 },
-      { "type": "addMarker", "flag": "inferred", "marker": { "key": "budew.itchyPollen",
-        "on": { "player": 0 }, "source": 101, "until": [{ "turnEnds": { "player": 0, "turn": 2 } }] } } ] } },
+    { "action": { "type": "attack", "player": 1, "pokemon": 101, "attack": 0, "changes": [   // Itchy Pollen
+      { "type": "damage", "pokemon": 4, "amount": 10 } ] } },
     { "action": { "type": "endTurn", "player": 1, "flag": "inferred", "changes": [] } }
 ```
 
@@ -411,13 +417,13 @@ hit. Dipplin's KO discard list leaves out Dipplin itself, which is `inferred`. P
 hand the viewer can't see, so the prize cards stay unknown.
 
 ```jsonc
-    { "action": { "type": "attack", "player": 1, "pokemon": 115, "attack": "Phantom Dive", "changes": [
+    { "action": { "type": "attack", "player": 1, "pokemon": 115, "attack": 1, "changes": [   // Phantom Dive
       { "type": "damage", "pokemon": 15, "amount": 200 },
       { "type": "counters", "pokemon": 4, "count": 6 } ] } },
-    { "action": { "type": "knockOut", "pokemon": 15, "cause": "attack", "changes": [
+    { "action": { "type": "knockOut", "pokemon": 15, "changes": [
       { "type": "move", "cards": [14, 15], "to": { "zone": "discard" } },
       { "type": "move", "cards": [3], "to": { "zone": "discard" }, "flag": "inferred" } ] } },
-    { "action": { "type": "knockOut", "pokemon": 4, "cause": "counters", "changes": [
+    { "action": { "type": "knockOut", "pokemon": 4, "changes": [
       { "type": "move", "cards": [4], "to": { "zone": "discard" } } ] } },
     { "action": { "type": "takePrizes", "player": 1, "count": 2, "changes": [
       { "type": "move", "cards": [108, 109], "to": { "zone": "hand" } } ] } },
@@ -433,8 +439,10 @@ hand the viewer can't see, so the prize cards stay unknown.
 - Names → prints: your side from your decklist (one Applin print in the list = certain);
   the opponent's side from attack and Ability names, HP from damage taken, else `guessed`.
 - Copies: pick by constraints (costs payable, targets legal), else `guessed`.
-- Known card effects add what the log leaves out: `budew.itchyPollen`, Recon Directive's
-  bottom card (from deck to `pending`, one to hand, one to `deckBottom`).
+- Known card effects add changes the log leaves out, such as Recon Directive's bottom card
+  (2 from deck to `pending`, one to hand, one to `deckBottom`). Effects with no change on
+  the table (Itchy Pollen's Item lock) need nothing: queries find them in the history.
+- Attack names → positions on the card.
 - Live has text bugs (wrong owner on Phantom Dive counters): trust what the card can do.
 
 ## Open for implementation

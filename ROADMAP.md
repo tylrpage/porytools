@@ -84,11 +84,13 @@ so every number below is exact.
 The foundation for the solver output, replays, and mid-game analysis.
 - ☑ Design session (2026-11-24): spelled-out changes are the truth (no card effects needed
   to fold); per-record viewpoint (player or all-seeing, projectable); tree of nodes for
-  branches; instances only while trackable (deck = pool, shuffle ends instances);
-  `guessed` / `inferred` flags; "turn N" = that player's Nth turn; no usernames
+  branches; state = table + history, everything else is a query; one global turn number
+  (UI shows "Your turn N"); attacks by position; instances only while trackable (deck =
+  pool, shuffle ends instances); `guessed` / `inferred` flags; no usernames
 - ◐ Spec (`docs/game-format.md`) with worked examples: opening setup, a T1 with a branch,
   and a real PTCG Live game hand-converted (tests the format against Live's partial info).
-  Includes the **state registry** (every recorded fact and which cards need it).
+  Includes the **state and query registry** (every stored fact and query, and which cards
+  need it).
   **[owner]** review
 - ☐ Rust crate builds native + WASM (`wasm-pack`) and runs in the site; CI runs
   `cargo test` (moved up from M4: the fold lives in Rust)

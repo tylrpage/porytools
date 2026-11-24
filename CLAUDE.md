@@ -104,9 +104,13 @@ One format serves the solver, the opening analysis, and the future replay record
   hand-written twice. The format gets a version field from day one.
 - The spec is `docs/game-format.md` (designed with the owner in M3). Records spell out every
   change, so folding needs card data but never card effects; legality is the engine's job.
-- Its **state registry** lists every fact the state records and which cards need it. When a
-  card needs a fact that isn't listed, that's a Rust/fold change: add the row first.
-- "Turn N" always means that player's Nth turn (records, UI, and the odds page).
+- State is the table plus the history; everything else (once-per-turn, "KO last turn",
+  Item lock…) is a Rust **query** over them, like Pichu's `CardQueries`. The spec's
+  **state and query registry** lists every stored fact and query and which cards need it.
+  When a card needs one that isn't listed, add the row with the code change.
+- Turns are one global number internally (1 = first player's T1, 2 = second player's T1);
+  the UI always shows the player's own count ("Your turn 2"), as the odds page does.
+- Attacks are stored by position on the card and shown by name.
 
 ## Goals (solver targets)
 A small, composable goal language rather than hardcoded checks. Start with:
