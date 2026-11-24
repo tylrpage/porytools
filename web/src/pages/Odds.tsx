@@ -6,6 +6,7 @@ import { useCardDb } from '../cards/useCardDb.ts'
 import HelpHeader from '../components/HelpHeader.tsx'
 import Problems from '../components/Problems.tsx'
 import { usePinnedRow } from '../components/usePinnedRow.ts'
+import { useStickyHead } from '../components/useStickyHead.ts'
 import type { DeckEntry } from '../deck/parse.ts'
 import { SAMPLE_DECKLIST } from '../deck/sample.ts'
 import { groupBySection } from '../deck/share.ts'
@@ -192,6 +193,7 @@ function OddsTable({
   const sections = groupBySection(entries)
   const options = { noMulligan: settings.noMulligan }
   const pin = usePinnedRow()
+  const stickyHead = useStickyHead()
   const rowOdds = (row: Row) => {
     const atLeastOne = [{ group: row.ids, atLeast: 1 }]
     const prizes = prizeDistribution(entries, row.ids, options)
@@ -235,7 +237,7 @@ function OddsTable({
       <p className="muted small">Hover or tap a column name to see what it counts.</p>
       <div className="table-scroll">
         <table className="odds-table" ref={pin.ref}>
-          <thead>
+          <thead ref={stickyHead}>
             <tr>
               <th className="count">#</th>
               <th className="sticky-col">Card</th>
