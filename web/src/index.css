@@ -505,7 +505,8 @@ section h2 {
   display: block;
 }
 
-.odds-table thead th:nth-child(2) {
+/* The header over a column of row labels aligns with them; number headers stay right-aligned. */
+.odds-table thead th.label-col {
   text-align: left;
 }
 

@@ -202,7 +202,7 @@ function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGro
           <thead>
             <tr>
               <th className="count">#</th>
-              <th className="sticky-col">Card</th>
+              <th className="sticky-col label-col">Card</th>
               <HelpHeader
                 label="Turn 1"
                 help="At least one copy seen by your first turn, counting that turn's draw."
@@ -460,7 +460,7 @@ function PrizeBreakdown({ entries, groups }: { entries: DeckEntry[]; groups: Nam
         <table className="odds-table prize-table">
           <thead>
             <tr>
-              <th>Prized</th>
+              <th className="label-col">Prized</th>
               {dist.map((_, n) => (
                 <th key={n}>{n}</th>
               ))}

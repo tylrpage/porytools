@@ -28,7 +28,9 @@ with the reason.
   it sits low on phones. Sticky only works if the wrapper doesn't scroll sideways, so the
   hook turns sideways scrolling on only when the table doesn't fit. Keep tables narrow
   enough to fit a 360px phone (smaller text, two-line column names) so the header sticks there.
-- Numbers right-aligned with `tabular-nums` so digits line up; the label column is left-aligned.
+- Numbers right-aligned with `tabular-nums` so digits line up; the label column is left-aligned,
+  and so is its header (`th.label-col`). Mark it by class, never by column position: a
+  positional rule leaks into other tables.
 - Wide tables scroll inside `.table-scroll` instead of widening the page on mobile.
 
 - **Column explanations go in header tooltips** (`HelpHeader`), not in a paragraph above
