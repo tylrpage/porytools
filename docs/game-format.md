@@ -17,7 +17,7 @@ are the source of truth once they exist, and TS types are generated from them.
 | Derived facts | **State is the table plus the history; everything else is a query.** The state stores only what's physically on the table (zones, stacks, damage counters, Special Conditions). "Supporter played this turn", "came into play this turn", "KO during your opponent's last turn", "under Itchy Pollen" are Rust query functions over the state and its history, like Pichu's `CardQueries`. New card conditions are new code, not new stored fields. |
 | Turns | Stored as **one global number**: turn 1 is the first player's first turn, turn 2 the second player's first, and so on (0 = setup). The UI always shows the player's own count, "Your turn 2", as players say it and as the odds page uses it. |
 | Attacks, Abilities | Attacks by **position** on the card (`"attack": 1`), shown by name. A Pokémon has at most one Ability, so using it needs no index. |
-| Start | A record starts from any **snapshot** (a `State`). A new game is just two decks; setup (coin flip, hands, mulligans, prizes) is logged as events. The M8 board editor produces mid-game snapshots. |
+| Start | A record **always starts from a new game**: just the two decks. Setup (coin flip, hands, mulligans, prizes) is logged as events, so every state has its full history and every query can be answered. Analysis always runs on a state inside a full record; tools that build a record reaching a wanted position come later. There are no mid-game snapshots with extra facts attached. |
 | Cards | Referenced by print ID **as listed** (`TEF-23`), resolved with `CardDb.cardOfPrint`, like share links. Cards with no known print (an opponent's) use the display print. |
 | Fold | Rust, compiled to WASM for the site, so the solver and the viewer share one implementation. |
 | Encoding | Canonical form is JSON (below). A compact URL encoding comes with share links (M9). |
@@ -144,8 +144,8 @@ stack** (canonically the bottom card, which survives evolution).
 
 ## State
 
-The fold's output and the snapshot format. Fields left out take their defaults (empty,
-zero, `null`), so a new game's start is short:
+The fold's output. A record's `start` is a new game, written as a `State` with only the
+decks filled in (other fields take their defaults: empty, zero, `null`):
 
 ```jsonc
 "start": {
@@ -165,7 +165,7 @@ State
   players[2]     PlayerState
   stadium        id[]                          0, 1, or 2 (Legendary Stadium) cards; owner = the cards' owner
   result         { winner, reason } | null
-  history        the actions so far (the path from the start, plus `start.history`), indexed by turn
+  history        the actions so far (the path from the start), indexed by turn
 
 PlayerState
   deck           { top: id[], count, contents: [print, count][] | null, bottom: id[] }
@@ -185,11 +185,6 @@ Pokemon
   conditions     { rotation: asleep|confused|paralyzed|null, poisoned, burned }
   faceDown       bool                          during setup
 ```
-
-In the snapshot, `start.history` is an optional list of actions known to have happened
-before the snapshot. They aren't applied (the snapshot already shows their result), but
-queries read them. The M8 board editor uses this for the few facts a query needs that the
-table can't show, e.g. a `knockOut` during the opponent's last turn, for Fezandipiti ex.
 
 `deck.contents` is the pool's exact contents when the viewer knows them (their own deck in a
 new game, or after `lookAtDeck`), else `null`. What a player's unknown cards *could* be (deck
@@ -261,7 +256,7 @@ on the table). The card-effect authoring skill (M4) points here.
 | Who goes first, global turn | `State` | Whose turn; going first: no Supporter, no attack on turn 1 |
 | Stadium cards in play | `State.stadium` | Replacing it discards to the owner's discard; Legendary Stadiums are 2 cards |
 | Result | `State.result` | Win by prizes / no Pokémon / deck-out; ties (Sudden Death) |
-| History | `State.history`, `start.history` | Every query below |
+| History | `State.history` | Every query below |
 
 ### Queries (from table + history)
 

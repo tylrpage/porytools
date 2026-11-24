@@ -87,11 +87,10 @@ The foundation for the solver output, replays, and mid-game analysis.
   branches; state = table + history, everything else is a query; one global turn number
   (UI shows "Your turn N"); attacks by position; instances only while trackable (deck =
   pool, shuffle ends instances); `guessed` / `inferred` flags; no usernames
-- ◐ Spec (`docs/game-format.md`) with worked examples: opening setup, a T1 with a branch,
+- ☑ Spec (`docs/game-format.md`) with worked examples: opening setup, a T1 with a branch,
   and a real PTCG Live game hand-converted (tests the format against Live's partial info).
   Includes the **state and query registry** (every stored fact and query, and which cards
-  need it).
-  **[owner]** review
+  need it). **[owner]** reviewed
 - ☐ Rust crate builds native + WASM (`wasm-pack`) and runs in the site; CI runs
   `cargo test` (moved up from M4: the fold lives in Rust)
 - ☐ Rust types (serde) + TS types generated with `ts-rs`; fold, consistency check,
@@ -141,9 +140,11 @@ lists are only a test set.
 - ☐ Refresh the test set on new sets
 
 ## M8 — Mid-game analysis ☐
-- ☐ Board-state editor that produces an M3 state (hand, board, discard, known deck info,
-  prizes known/unknown)
-- ☐ Solver runs from an arbitrary state toward a goal this turn / by next turn
+Analysis always runs on a state inside a full game record (from the start of the game), so
+every query has its history. No standalone "current board + extra facts" states.
+- ☐ Tools that help build a record reaching a wanted position (e.g. set up a board, then
+  fill in a plausible history), scoped when we get here
+- ☐ Solver runs from any state in a record toward a goal this turn / by next turn
 - ☐ Goals v2: cards in hand/discard, damage thresholds (begin damage math)
 
 ## M9 — Game recorder & replays ☐

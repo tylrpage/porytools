@@ -96,7 +96,8 @@ One format serves the solver, the opening analysis, and the future replay record
   attach, evolve, search → result, shuffle, prize taken, attack…). The state at any point
   is a fold over the events, which is what makes scrubbing a replay possible.
 - Solver example lines are emitted as event logs, so the replay viewer renders them.
-  Mid-game analysis starts from any state in a record.
+  Mid-game analysis starts from any state in a record. Records always start from a new
+  game (full history), never from a mid-game snapshot.
 - States must represent **hidden information** explicitly: deck = known multiset with
   unknown order (or known order after a reveal), prizes = unknown / partially known,
   opponent hand = count only. The solver may only branch on what the player knows.
