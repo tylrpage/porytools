@@ -21,7 +21,8 @@ if (!changed) process.exit(0);
 const bin = (name) => path.join(web, "node_modules", ...name);
 const checks = [
   ["typecheck (tsc -b)", [bin(["typescript", "bin", "tsc"]), "-b", "--pretty", "false"]],
-  ["lint (oxlint)", [bin(["oxlint", "bin", "oxlint"])]],
+  // --deny-warnings: warnings (incl. jsx-a11y accessibility rules) must be fixed too.
+  ["lint (oxlint)", [bin(["oxlint", "bin", "oxlint"]), "--deny-warnings"]],
 ];
 
 const failures = [];

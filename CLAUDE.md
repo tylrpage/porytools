@@ -25,7 +25,8 @@ Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
 - Keep this file and `ROADMAP.md` current as work lands.
 - Project hooks in `.claude/settings.json` (scripts in `.claude/hooks/`): Prettier formats
   each edited file under `web/` or `data/*.json`; at stop, if TypeScript in `web/` has
-  uncommitted changes, `tsc -b` + `oxlint` run and errors block the stop to be fixed.
+  uncommitted changes, `tsc -b` + `oxlint --deny-warnings` (incl. `jsx-a11y` accessibility rules) run and
+  failures block the stop to be fixed.
   Rust equivalents get added with the solver crate (M4).
 - Claude commits to `main` at coherent checkpoints (checks passing); the owner decides when
   to push, since pushing deploys the site.
