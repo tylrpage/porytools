@@ -16,8 +16,7 @@ set; store just the decklists, not players, placements or meta shares.
 Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
 
 ## Working with the owner
-- Knows some TypeScript, is new to Rust. Don't add comments explaining Rust concepts:
-  the owner doesn't read them. Comment code for what it does, as usual.
+- Knows some TypeScript, is new to Rust.
 - Plays the game. Treat them as the domain expert and the final reviewer for card effects.
 
 ## Dev workflow (Claude Code)
