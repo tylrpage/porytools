@@ -15,6 +15,7 @@ import {
   HAND_SIZE,
   isBasicPokemon,
   mulliganChance,
+  onlyBasicChance,
   PRIZE_COUNT,
   prizeDistribution,
 } from '../odds/odds.ts'
@@ -169,6 +170,8 @@ interface Row {
   name: string
   count: number
   ids: ReadonlySet<string>
+  /** A Basic Pokémon card row: gets the "only Basic" column. */
+  basic?: boolean
 }
 
 function OddsTable({
@@ -190,6 +193,7 @@ function OddsTable({
       turn2: chance(entries, atLeastOne, drawsBy(2), options).p,
       anyPrized: 1 - prizes[0],
       allPrized: row.count <= PRIZE_COUNT ? prizes[row.count] : NaN,
+      onlyBasic: row.basic ? onlyBasicChance(entries, row.ids, options) : null,
     }
   }
   const renderRow = (row: Row) => {
@@ -202,6 +206,7 @@ function OddsTable({
         <td>{percent(o.turn2)}</td>
         <td>{percent(o.anyPrized)}</td>
         <td>{percent(o.allPrized)}</td>
+        <td>{o.onlyBasic === null ? '' : percent(o.onlyBasic)}</td>
       </tr>
     )
   }
@@ -211,6 +216,7 @@ function OddsTable({
       name: e.card.name,
       count: e.count,
       ids: new Set([e.card.id]),
+      basic: isBasicPokemon(e.card),
     }))
   const groupRows = groups
     .filter((g) => g.ids.size > 0)
@@ -221,7 +227,8 @@ function OddsTable({
       <h2>At least one copy</h2>
       <p className="muted small">
         Chance of having seen at least one copy by your turn, after its draw. Prized: at least one /
-        every copy in your prizes.
+        every copy in your prizes. Only Basic: the card is the only Basic Pokémon in your opening
+        hand (one or more copies), so it must start Active.
       </p>
       <div className="table-scroll">
         <table className="odds-table">
@@ -233,13 +240,14 @@ function OddsTable({
               <th>Turn 2</th>
               <th>Prized</th>
               <th>All prized</th>
+              <th>Only Basic</th>
             </tr>
           </thead>
           {sections.map(([section, list]) =>
             list.length === 0 ? null : (
               <tbody key={section}>
                 <tr className="section-row">
-                  <th colSpan={6}>{section}</th>
+                  <th colSpan={7}>{section}</th>
                 </tr>
                 {cardRows(list).map(renderRow)}
               </tbody>
@@ -248,7 +256,7 @@ function OddsTable({
           {groupRows.length > 0 && (
             <tbody>
               <tr className="section-row">
-                <th colSpan={6}>Groups</th>
+                <th colSpan={7}>Groups</th>
               </tr>
               {groupRows.map(renderRow)}
             </tbody>

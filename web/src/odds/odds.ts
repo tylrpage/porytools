@@ -76,6 +76,31 @@ export function chance(
   return { p, complement: 1 - p }
 }
 
+/**
+ * P(the opening hand's Basic Pokémon are all from `group`, with at least one), i.e. you must
+ * start one of them Active. Several copies of the same card still count as "only". Before the
+ * first draw, so it's the opening hand alone.
+ */
+export function onlyBasicChance(
+  deck: readonly DeckEntry[],
+  group: Group,
+  options: OddsOptions = {},
+): number {
+  const otherBasics = new Set([...basicIds(deck)].filter((id) => !group.has(id)))
+  const outcomes = conditionedDeal(
+    deck,
+    [group, otherBasics],
+    [
+      { group: 0, zones: ['hand'], cap: 1 },
+      { group: 1, zones: ['hand'], cap: 1 },
+    ],
+    0,
+    options,
+  )
+  if (outcomes.length === 0) return NaN
+  return outcomes.reduce((p, o) => (o.counts[0] === 1 && o.counts[1] === 0 ? p + o.p : p), 0)
+}
+
 /** P(exactly n cards of `group` are prized), for n = 0 … min(copies, prizes). */
 export function prizeDistribution(
   deck: readonly DeckEntry[],

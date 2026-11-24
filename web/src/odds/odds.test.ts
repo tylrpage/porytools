@@ -9,6 +9,7 @@ import {
   type Group,
   isBasicPokemon,
   mulliganChance,
+  onlyBasicChance,
   prizeDistribution,
 } from './odds.ts'
 
@@ -246,5 +247,35 @@ describe('drawsBy', () => {
   it('both players draw on their first turn', () => {
     expect(drawsBy(1)).toBe(1)
     expect(drawsBy(3)).toBe(3)
+  })
+})
+
+describe('onlyBasicChance', () => {
+  // Every Basic in the opening hand is from the group, and there is at least one.
+  const onlyFrom = (group: Group) => (z: { hand: Card[] }) => {
+    const basics = z.hand.filter(isBasicPokemon)
+    return basics.length > 0 && basics.every((c) => group.has(c.id))
+  }
+  for (const noMulligan of [false, true]) {
+    for (const name of ['A', 'B']) {
+      it(`${name} is the only Basic${noMulligan ? ', no mulligan' : ''}`, () => {
+        const expected = bruteForce(
+          small,
+          { hand: 3, prizes: 2, drawn: 0 },
+          onlyFrom(ids(name)),
+          noMulligan,
+        )
+        const got = onlyBasicChance(small, ids(name), { ...smallOptions, noMulligan })
+        expect(got).toBeCloseTo(expected, 12)
+      })
+    }
+  }
+
+  it('is 1 when the deck has a single Basic card (no mulligan)', () => {
+    const deck = deckOf([4, basic('A')], [7, item('D')])
+    expect(onlyBasicChance(deck, ids('A'), { ...smallOptions, noMulligan: true })).toBeCloseTo(
+      1,
+      12,
+    )
   })
 })
