@@ -308,67 +308,86 @@ interface ConditionState {
   atLeast: number
 }
 
+/** The question's parts must all hold; within a part, any one alternative is enough. */
+type PartState = ConditionState[]
+
 function Question({ entries, groups }: { entries: DeckEntry[]; groups: NamedGroup[] }) {
   const options = cardOptions(entries, groups)
-  const [conditions, setConditions] = useState<ConditionState[]>([
-    { key: options[0].key, atLeast: 1 },
-  ])
+  const fresh = (): ConditionState => ({ key: options[0].key, atLeast: 1 })
+  const [parts, setParts] = useState<PartState[]>([[fresh()]])
   const [turn, setTurn] = useState(2)
 
   // The deck can change under a question: fall back to the first card, clamp counts.
-  const resolved = conditions.map((c) => {
-    const option = options.find((o) => o.key === c.key) ?? options[0]
-    return { option, atLeast: Math.min(c.atLeast, copiesIn(entries, option.ids)) }
-  })
+  const resolved = parts.map((part) =>
+    part.map((c) => {
+      const option = options.find((o) => o.key === c.key) ?? options[0]
+      return { option, atLeast: Math.min(c.atLeast, copiesIn(entries, option.ids)) }
+    }),
+  )
   const draws = drawsBy(turn)
   const { p } = chance(
     entries,
-    resolved.map((c) => ({ group: c.option.ids, atLeast: c.atLeast })),
+    resolved.map((part) => part.map((c) => ({ group: c.option.ids, atLeast: c.atLeast }))),
     draws,
   )
+  const conditionCount = parts.reduce((n, part) => n + part.length, 0)
 
-  const update = (i: number, c: ConditionState) =>
-    setConditions(conditions.map((old, j) => (j === i ? c : old)))
+  const update = (i: number, j: number, c: ConditionState) =>
+    setParts(
+      parts.map((part, pi) => (pi === i ? part.map((old, ci) => (ci === j ? c : old)) : part)),
+    )
+  const remove = (i: number, j: number) =>
+    setParts(
+      parts
+        .map((part, pi) => (pi === i ? part.filter((_, ci) => ci !== j) : part))
+        .filter((part) => part.length > 0),
+    )
+  const addAlternative = (i: number) =>
+    setParts(parts.map((part, pi) => (pi === i ? [...part, fresh()] : part)))
 
   return (
     <section>
       <h2>Ask a question</h2>
       <div className="question">
-        {resolved.map((c, i) => (
-          <div key={i} className="condition">
-            <span>{i === 0 ? 'At least' : 'and at least'}</span>
-            <select
-              aria-label="How many"
-              value={c.atLeast}
-              onChange={(e) => update(i, { key: c.option.key, atLeast: Number(e.target.value) })}
-            >
-              {Array.from({ length: Math.min(copiesIn(entries, c.option.ids), 7) }, (_, n) => (
-                <option key={n + 1}>{n + 1}</option>
-              ))}
-            </select>
-            <CardSelect
-              aria-label="Card or group"
-              entries={entries}
-              groups={groups}
-              value={c.option.key}
-              onChange={(key) => update(i, { key, atLeast: 1 })}
-            />
-            {conditions.length > 1 && (
-              <button
-                type="button"
-                aria-label="Remove condition"
-                onClick={() => setConditions(conditions.filter((_, j) => j !== i))}
-              >
-                ×
-              </button>
-            )}
+        {resolved.map((part, i) => (
+          <div key={i} className={part.length > 1 ? 'question-part alternatives' : 'question-part'}>
+            {part.map((c, j) => (
+              <div key={j} className="condition">
+                <span>{j > 0 ? 'or at least' : i > 0 ? 'and at least' : 'At least'}</span>
+                <select
+                  aria-label="How many"
+                  value={c.atLeast}
+                  onChange={(e) =>
+                    update(i, j, { key: c.option.key, atLeast: Number(e.target.value) })
+                  }
+                >
+                  {Array.from({ length: Math.min(copiesIn(entries, c.option.ids), 7) }, (_, n) => (
+                    <option key={n + 1}>{n + 1}</option>
+                  ))}
+                </select>
+                <CardSelect
+                  aria-label="Card or group"
+                  entries={entries}
+                  groups={groups}
+                  value={c.option.key}
+                  onChange={(key) => update(i, j, { key, atLeast: 1 })}
+                />
+                {conditionCount > 1 && (
+                  <button type="button" aria-label="Remove condition" onClick={() => remove(i, j)}>
+                    ×
+                  </button>
+                )}
+                {j === part.length - 1 && (
+                  <button type="button" onClick={() => addAlternative(i)}>
+                    + or
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         ))}
-        <button
-          type="button"
-          onClick={() => setConditions([...conditions, { key: options[0].key, atLeast: 1 }])}
-        >
-          + Add card or group
+        <button type="button" onClick={() => setParts([...parts, [fresh()]])}>
+          + And card or group
         </button>
         <div className="condition">
           <span>by</span>

@@ -114,9 +114,14 @@ main {
   font-size: 0.85rem;
 }
 
+/*
+ * Same vertical padding, border and line height as select/input, so buttons beside them line
+ * up. Firefox forces `line-height: normal` on select and input, so buttons use it too.
+ */
 button {
   font: inherit;
-  padding: 0.3rem 0.8rem;
+  line-height: normal;
+  padding: 0.2rem 0.7rem;
   border: 1px solid var(--border);
   border-radius: 0.375rem;
   background: var(--surface);
@@ -528,6 +533,7 @@ section h2 {
 .group-editor input:not([type]),
 select {
   font: inherit;
+  line-height: normal;
   padding: 0.2rem 0.4rem;
   border: 1px solid var(--border);
   border-radius: 0.375rem;
@@ -547,6 +553,18 @@ select {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
+}
+
+.question-part {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Alternatives that share one "and" slot, so the grouping is visible. */
+.question-part.alternatives {
+  border-left: 2px solid var(--border);
+  padding-left: 0.6rem;
 }
 
 .condition {

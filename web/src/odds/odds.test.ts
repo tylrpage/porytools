@@ -5,6 +5,7 @@ import { choose } from './deal.ts'
 import {
   chance,
   type Condition,
+  type Part,
   drawsBy,
   type Group,
   isBasicPokemon,
@@ -96,7 +97,7 @@ const small = deckOf([2, basic('A')], [1, basic('B')], [3, stage1('C')], [5, ite
 const smallOptions = { handSize: 3, prizeCount: 2 }
 
 describe('exact odds match brute force on a small deck', () => {
-  const cases: { name: string; conditions: Condition[]; draws: number }[] = [
+  const cases: { name: string; conditions: Part[]; draws: number }[] = [
     { name: '≥1 A in hand', conditions: [{ group: ids('A'), atLeast: 1 }], draws: 0 },
     { name: '≥2 A by 2 draws', conditions: [{ group: ids('A'), atLeast: 2 }], draws: 2 },
     { name: '≥2 C by 3 draws', conditions: [{ group: ids('C'), atLeast: 2 }], draws: 3 },
@@ -116,6 +117,27 @@ describe('exact odds match brute force on a small deck', () => {
       ],
       draws: 2,
     },
+    {
+      name: 'A or C',
+      conditions: [
+        [
+          { group: ids('A'), atLeast: 2 },
+          { group: ids('C'), atLeast: 1 },
+        ],
+      ],
+      draws: 1,
+    },
+    {
+      name: '(A or B) and C',
+      conditions: [
+        [
+          { group: ids('A'), atLeast: 1 },
+          { group: ids('B'), atLeast: 1 },
+        ],
+        { group: ids('C'), atLeast: 2 },
+      ],
+      draws: 2,
+    },
   ]
   for (const { name, conditions, draws } of cases) {
     for (const noMulligan of [false, true]) {
@@ -124,8 +146,10 @@ describe('exact odds match brute force on a small deck', () => {
           small,
           { hand: 3, prizes: 2, drawn: draws },
           (z) =>
-            conditions.every(
-              (c) => countIn(z.hand, c.group) + countIn(z.drawn, c.group) >= c.atLeast,
+            conditions.every((part) =>
+              (Array.isArray(part) ? part : [part]).some(
+                (c: Condition) => countIn(z.hand, c.group) + countIn(z.drawn, c.group) >= c.atLeast,
+              ),
             ),
           noMulligan,
         )

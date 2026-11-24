@@ -63,6 +63,9 @@ with the reason.
   look busy.
 
 ## General
+- **Buttons are the same height as dropdowns and text boxes** (same vertical padding and
+  border, and `line-height: normal`, which Firefox forces on dropdowns and text boxes), so a
+  row of controls lines up instead of looking ragged.
 - Every new colour must work in both light and dark mode: use or derive from the `:root`
   tokens, never hardcode a one-theme colour.
 - Accessibility basics are enforced by the `jsx-a11y` lint rules (labels, alt text,

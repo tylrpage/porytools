@@ -18,6 +18,14 @@ export interface Condition {
   atLeast: number
 }
 
+/**
+ * One part of a question: a condition, or a list of alternatives where any one is enough.
+ * A question is a list of parts that must all hold: (A or B) and C.
+ */
+export type Part = Condition | readonly Condition[]
+
+const alternatives = (part: Part): readonly Condition[] => ('group' in part ? [part] : part)
+
 export interface OddsOptions {
   /**
    * Count only opening hands with a Basic Pokémon, like the real game: a hand without one
@@ -47,16 +55,20 @@ export function mulliganChance(deck: readonly DeckEntry[], options: OddsOptions 
 }
 
 /**
- * P(every condition holds) counting the opening hand plus the next `draws` cards. Prizes are
- * dealt in between, so a prized card can't be drawn. `draws = 0` is the opening hand.
- * Card effects that draw or search are not modeled here; that's the solver's job.
+ * P(every part holds, a list part by any one of its conditions) counting the opening hand plus
+ * the next `draws` cards. Prizes are dealt in between, so a prized card can't be drawn.
+ * `draws = 0` is the opening hand. Card effects that draw or search are not modeled here;
+ * that's the solver's job.
  */
 export function chance(
   deck: readonly DeckEntry[],
-  conditions: readonly Condition[],
+  parts: readonly Part[],
   draws: number,
   options: OddsOptions = {},
 ): { p: number; complement: number } {
+  // One tracker per condition; each part remembers which trackers are its alternatives.
+  const conditions: Condition[] = []
+  const partIndices = parts.map((part) => alternatives(part).map((c) => conditions.push(c) - 1))
   const trackers = conditions.map((c, i) => ({
     group: i,
     zones: ['hand', 'drawn'] as Zone[],
@@ -71,7 +83,8 @@ export function chance(
   )
   let p = outcomes.length === 0 ? NaN : 0
   for (const o of outcomes) {
-    if (conditions.every((c, i) => o.counts[i] >= c.atLeast)) p += o.p
+    const met = (i: number) => o.counts[i] >= conditions[i].atLeast
+    if (partIndices.every((indices) => indices.some(met))) p += o.p
   }
   return { p, complement: 1 - p }
 }
