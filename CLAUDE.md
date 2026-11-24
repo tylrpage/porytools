@@ -49,9 +49,10 @@ commits can sweep them in. So parallel work that edits files goes in a git workt
   taken.
 - **Shared files:** leave `ROADMAP.md`, `CLAUDE.md`, lockfiles and `data/cards.json` to the
   main-folder session, or update them after merging, since they're the usual conflict spots.
-- **Finishing:** tell the owner the branch is ready. Merge it into `main` from the main
-  folder (fast-forward when `main` hasn't moved), resolve any conflicts, update
-  `ROADMAP.md`, then remove the worktree and branch. Never push from a worktree branch,
+- **Finishing:** tell the owner the branch is ready. Land it on `main` with no merge
+  commit, so history stays linear: if `main` moved, rebase the branch onto it first, re-run
+  the checks on the rebased branch, then fast-forward `main` from the main folder. If the
+  rebase conflicts, stop and ask the owner. Then update `ROADMAP.md`, and remove the worktree and branch. Never push from a worktree branch,
   because pushing `main` deploys.
 - Keep branches short-lived and split parallel tasks by area (e.g. Rust solver vs `web/`)
   so they rarely touch the same files.
