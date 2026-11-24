@@ -5,6 +5,7 @@ import App from '../App.tsx'
 import { fixtureData } from '../cards/fixture.ts'
 
 beforeEach(() => {
+  localStorage.clear()
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => new Response(JSON.stringify(fixtureData))),
@@ -37,6 +38,25 @@ describe('deck page', () => {
     expect(await screen.findByText('60 cards')).toBeInTheDocument()
     expect(screen.getByText('Valid Standard deck')).toBeInTheDocument()
     expect(screen.getByLabelText<HTMLTextAreaElement>('Decklist').value).toContain(
+      '4 Dreepy TWM 128',
+    )
+  })
+
+  it('keeps the list when leaving and coming back, and shares it with the odds page', async () => {
+    const view = renderAt('/deck')
+    fireEvent.change(await screen.findByLabelText('Decklist'), {
+      target: { value: '4 Dreepy TWM 128' },
+    })
+    fireEvent.click(screen.getByRole('link', { name: 'About' }))
+    fireEvent.click(await screen.findByRole('link', { name: 'Odds' }))
+    expect((await screen.findByLabelText<HTMLTextAreaElement>('Decklist')).value).toBe(
+      '4 Dreepy TWM 128',
+    )
+    view.unmount()
+
+    // A fresh visit (reload) restores it too.
+    renderAt('/deck')
+    expect((await screen.findByLabelText<HTMLTextAreaElement>('Decklist')).value).toBe(
       '4 Dreepy TWM 128',
     )
   })

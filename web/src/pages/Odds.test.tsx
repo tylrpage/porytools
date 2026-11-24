@@ -6,6 +6,7 @@ import { fixtureData } from '../cards/fixture.ts'
 import { choose } from '../odds/deal.ts'
 
 beforeEach(() => {
+  localStorage.clear()
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => new Response(JSON.stringify(fixtureData))),
