@@ -305,10 +305,11 @@ section h2 {
   overflow-x: visible;
 }
 
-/* Known iOS Safari quirk, left alone: with the toolbar at the top and collapsed, rows show in a
-   ~13px strip above the stuck header. That strip lies above the layout viewport; Safari paints
-   page content there but clips sticky layers at the viewport edge, so nothing the header draws
-   (shadow, ::before) can cover it, and viewport-fit=cover doesn't move the viewport. */
+/* Known iOS Safari quirk, left alone: with Safari's address bar at the top and collapsed, rows
+   show in a ~13px strip above the stuck header. That strip lies above the layout viewport;
+   Safari paints page content there but clips sticky layers at the viewport edge, so nothing the
+   header draws (shadow, ::before) can cover it, and viewport-fit=cover doesn't move the
+   viewport. It comes from Safari's toolbar, not WebKit: Firefox on the same iPhone is clean. */
 .table-scroll.sticky-head thead th {
   position: sticky;
   top: 0;
