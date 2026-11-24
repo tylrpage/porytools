@@ -32,6 +32,29 @@ Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
   to push, since pushing deploys the site.
 - Run `/code-review` only after the owner accepts a milestone, not per change.
 - Prefer a few project-specific skills/hooks over large generic config bundles.
+
+## Parallel sessions
+The owner sometimes runs several Claude Code sessions at once. Sessions sharing one folder
+trip over each other: the stop hook type-checks the other session's half-done files, and
+commits can sweep them in. So parallel work that edits files goes in a git worktree.
+- **Deciding (before the first file edit of a task):** run `git status` and ListAgents.
+  Use a worktree (EnterWorktree, or start with `claude -w <name>`) if another porytools
+  session is busy (not idle), or if the tree has uncommitted changes this session didn't
+  make. Otherwise work in the main folder on `main`. Idle peer sessions don't count. The
+  owner's prompt overrides this either way. Read-only work (questions, planning) never needs
+  a worktree.
+- **In a worktree:** work on its own branch (git won't check out `main` twice) and commit
+  checkpoints there, not on `main`. Run `npm install` in `web/` first (`node_modules`
+  isn't shared). If a dev server is needed, use the port Vite reports, since 5173 may be
+  taken.
+- **Shared files:** leave `ROADMAP.md`, `CLAUDE.md`, lockfiles and `data/cards.json` to the
+  main-folder session, or update them after merging, since they're the usual conflict spots.
+- **Finishing:** tell the owner the branch is ready. Merge it into `main` from the main
+  folder (fast-forward when `main` hasn't moved), resolve any conflicts, update
+  `ROADMAP.md`, then remove the worktree and branch. Never push from a worktree branch,
+  because pushing `main` deploys.
+- Keep branches short-lived and split parallel tasks by area (e.g. Rust solver vs `web/`)
+  so they rarely touch the same files.
 - Before UI work, read `docs/ux-guidelines.md`. When the owner gives UX feedback that points
   at a pattern, fix it everywhere it applies and add a rule there.
 
