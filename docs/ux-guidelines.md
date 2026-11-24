@@ -57,6 +57,10 @@ with the reason.
   preview never catches the pointer, so it doesn't block the names under it. The image is
   the card's display print (the same print everywhere). Same-name cards also get their print
   in the label (`cardLabeler`), because tables must be readable without hover.
+- **Anything that opens on hover gets the dotted underline** (help headers, card names), so
+  the one cue means "more here" everywhere. Where it repeats down a whole column (card
+  names), draw it fainter and go full strength on the one being pointed at, so lists don't
+  look busy.
 
 ## General
 - Every new colour must work in both light and dark mode: use or derive from the `:root`

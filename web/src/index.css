@@ -382,7 +382,9 @@ section h2 {
   }
 }
 
-/* Card name that shows the card's image (CardName.tsx). Looks like plain text. */
+/* Card name that shows the card's image (CardName.tsx). Same dotted underline as the
+   help headers ("hover for more"), but fainter, since whole columns of names carry it;
+   full strength on the name being looked at. */
 .card-name {
   font: inherit;
   color: inherit;
@@ -390,7 +392,15 @@ section h2 {
   border: none;
   padding: 0;
   text-align: left;
-  cursor: default;
+  cursor: help;
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in srgb, var(--muted) 55%, transparent);
+  text-underline-offset: 0.2em;
+}
+
+.card-name:hover,
+.card-name:focus-visible {
+  text-decoration-color: currentColor;
 }
 
 /* The image floats above the page (portal, fixed) and never catches the pointer, so it
