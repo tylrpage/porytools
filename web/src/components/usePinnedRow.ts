@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react'
 
 /**
- * Click or tap a table row to pin its highlight; click it again or anywhere off the rows (or
- * press Escape) to clear, or another row to move it. It's a visual reading aid (touch screens have no hover), not a control, so screen
- * readers lose nothing and the rows stay plain `<tr>`s rather than fake buttons.
+ * Click a table row to pin its highlight; click it again or anywhere off the rows (or press
+ * Escape) to clear, or another row to move it. It's a visual reading aid, not a control, so
+ * screen readers lose nothing and the rows stay plain `<tr>`s rather than fake buttons. The
+ * CSS shows the pin only on mouse devices (`@media (hover: hover)`); taps still toggle the
+ * state but paint nothing.
  *
  * Put `ref` on an element that contains the rows, and `data-row={key}` plus
  * `className={rowClass(key)}` on each pinnable row.

@@ -193,7 +193,7 @@ button:hover {
 }
 
 /* Data tables (docs/ux-guidelines.md): one separation cue (faint zebra stripes, no row
-   borders) plus one focus state (hover with a mouse, or a row pinned by click/tap) in the
+   borders) plus one focus state (with a mouse: hover, or a row pinned by click) in the
    same neutral tint, only stronger. Each row sets --row-tint and its cells paint it, so the
    opaque sticky column can layer the same tint. Stripes count only data rows, so they
    restart cleanly after each section header row. */
@@ -205,28 +205,17 @@ button:hover {
   --row-tint: var(--row-stripe);
 }
 
-/* Same specificity as the stripe rule, later in the file, so focus wins on striped rows. */
-:is(.deck-table, .odds-table) tbody tr:not(.section-row).pinned {
-  --row-tint: var(--row-hover);
-}
-
-/* Hover only with a real pointer: phones emulate a sticky :hover on tap, which would fight
-   the pinned row. */
+/* Mouse only. On touch screens the highlight lagged the tap and added little, so phones
+   just get the stripes. Same specificity as the stripe rule, later in the file, so focus
+   wins on striped rows. */
 @media (hover: hover) {
-  :is(.deck-table, .odds-table) tbody tr:not(.section-row):hover {
+  :is(.deck-table, .odds-table) tbody tr:not(.section-row):is(:hover, .pinned) {
     --row-tint: var(--row-hover);
   }
 }
 
 :is(.deck-table, .odds-table) tbody tr > * {
   background: var(--row-tint);
-}
-
-/* iOS only fires click on elements that look clickable. No cursor shows on touch anyway. */
-@media (hover: none) {
-  tr[data-row] {
-    cursor: pointer;
-  }
 }
 
 .deck-table {
@@ -314,11 +303,27 @@ section h2 {
    (useStickyHead.ts sets data-overflows); then the header stops sticking. */
 .table-scroll.sticky-head:not([data-overflows]) {
   overflow-x: visible;
+  /* Clips the cover below to the table. `clip` isn't a scrolling box, so it doesn't catch
+     the sticky header the way `hidden` would. */
+  overflow-y: clip;
 }
 
 .table-scroll.sticky-head thead th {
   position: sticky;
   top: 0;
+}
+
+/* iOS Safari can hold a stuck header a little below the window's top edge (around its
+   collapsing toolbar), so rows showed in the gap above it. Each header cell paints the page
+   background upward. Above a stuck header that is only rows that should be off screen; when
+   the header isn't stuck, the area above lies outside the table and the clip hides it. */
+.table-scroll.sticky-head:not([data-overflows]) thead th::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 100%;
+  height: 100vh;
+  background: var(--bg);
+  pointer-events: none;
 }
 
 .odds-table {

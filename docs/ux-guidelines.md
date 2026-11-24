@@ -10,10 +10,11 @@ with the reason.
   busy. Stripes help follow long rows of numbers, on touch screens too. Stripe data rows
   only; section header rows don't count and the stripes restart after them. A rule under the
   header row is fine: it separates names from data, not row from row.
-- **One focus state, in the same neutral tint as the stripe, only stronger.** Hover (mouse
-  only, `@media (hover: hover)`) and a row pinned by click or tap (`usePinnedRow`; clicking it again, clicking off the rows,
-  or Escape clears it) both show
-  which numbers belong to which card. Don't colour it with the accent: keep the accent for
+- **One focus state, in the same neutral tint as the stripe, only stronger.** Hover and a
+  row pinned by click (`usePinnedRow`; clicking it again, clicking off the rows, or Escape
+  clears it) both show which numbers belong to which card. Mouse only
+  (`@media (hover: hover)`): on touch screens a tap highlight lags the tap and adds little,
+  so phones get the stripes alone. Don't colour it with the accent: keep the accent for
   links, focus rings, and meaningful highlights. Use the shared `--row-stripe` /
   `--row-hover` tokens, derived from the theme colours so they work in dark mode. Rows set
   `--row-tint` and cells paint it.
