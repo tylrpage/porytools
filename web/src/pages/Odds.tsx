@@ -192,7 +192,6 @@ function OddsTable({
     return {
       turn1: chance(entries, atLeastOne, drawsBy(1), options).p,
       turn2: chance(entries, atLeastOne, drawsBy(2), options).p,
-      anyPrized: 1 - prizes[0],
       allPrized: row.count <= PRIZE_COUNT ? prizes[row.count] : NaN,
       onlyBasic: row.basic ? onlyBasicChance(entries, row.ids, options) : null,
     }
@@ -205,7 +204,6 @@ function OddsTable({
         <th scope="row">{row.name}</th>
         <td>{percent(o.turn1)}</td>
         <td>{percent(o.turn2)}</td>
-        <td>{percent(o.anyPrized)}</td>
         <td>{percent(o.allPrized)}</td>
         <td>{o.onlyBasic === null ? '' : percent(o.onlyBasic)}</td>
       </tr>
@@ -241,7 +239,6 @@ function OddsTable({
                 label="Turn 2"
                 help="At least one copy seen by your second turn, counting that turn's draw."
               />
-              <HelpHeader label="Prized" help="At least one copy is in your prizes." />
               <HelpHeader label="All prized" help="Every copy is in your prizes." />
               <HelpHeader
                 label="Only Basic"
@@ -253,7 +250,7 @@ function OddsTable({
             list.length === 0 ? null : (
               <tbody key={section}>
                 <tr className="section-row">
-                  <th colSpan={7}>{section}</th>
+                  <th colSpan={6}>{section}</th>
                 </tr>
                 {cardRows(list).map(renderRow)}
               </tbody>
@@ -262,7 +259,7 @@ function OddsTable({
           {groupRows.length > 0 && (
             <tbody>
               <tr className="section-row">
-                <th colSpan={7}>Groups</th>
+                <th colSpan={6}>Groups</th>
               </tr>
               {groupRows.map(renderRow)}
             </tbody>
