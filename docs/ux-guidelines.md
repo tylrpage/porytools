@@ -5,12 +5,21 @@ UI work. Add a rule when feedback points at a pattern, not a one-off. Keep each 
 with the reason.
 
 ## Tables
-- **Zebra stripes on data rows.** Long rows of numbers are hard to follow across the line.
-  Stripe data rows only; section header rows don't count and the stripes restart after them.
-- **Hover highlights the whole row.** It shows which numbers belong to which card. Use the
-  shared `--row-stripe` / `--row-hover` tokens. They're derived from the theme colours, so they
-  work in dark mode too. Apply hover to the cells (`tr:hover > *`), not the `tr`, or the
-  higher-specificity stripe rule hides it on striped rows.
+- **One row-separation cue: faint zebra stripes, no row borders.** Separation is drawn on
+  every row all the time; stripes and borders both do that job, and using both reads as
+  busy. Stripes help follow long rows of numbers, on touch screens too. Stripe data rows
+  only; section header rows don't count and the stripes restart after them. A rule under the
+  header row is fine: it separates names from data, not row from row.
+- **One focus state, in the same neutral tint as the stripe, only stronger.** Hover (mouse
+  only, `@media (hover: hover)`) and a row pinned by click or tap (`usePinnedRow`) both show
+  which numbers belong to which card. Don't colour it with the accent: keep the accent for
+  links, focus rings, and meaningful highlights. Use the shared `--row-stripe` /
+  `--row-hover` tokens, derived from the theme colours so they work in dark mode. Rows set
+  `--row-tint` and cells paint it.
+- **Tables must be readable without hover.** Touch screens have none, so never put
+  information only in a hover state.
+- **Label column sticks when a table scrolls sideways** (`.sticky-col`, opaque, layering the
+  row tint over the page background), so the card name stays in view on a phone.
 - Numbers right-aligned with `tabular-nums` so digits line up; the label column is left-aligned.
 - Wide tables scroll inside `.table-scroll` instead of widening the page on mobile.
 

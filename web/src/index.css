@@ -8,7 +8,7 @@
   --accent-text: #9a3412;
   /* Derived from the theme colours, so they work in light and dark mode unchanged. */
   --row-stripe: color-mix(in srgb, var(--text) 4%, transparent);
-  --row-hover: color-mix(in srgb, var(--accent) 14%, transparent);
+  --row-hover: color-mix(in srgb, var(--text) 9%, transparent);
 
   color-scheme: light dark;
   font-family:
@@ -187,16 +187,41 @@ button:hover {
   margin: 1.25rem 0 0.25rem;
 }
 
-/* Data tables: zebra stripes + hover highlight (docs/ux-guidelines.md). Stripes count only
-   data rows, so they restart cleanly after each section header row. */
-:is(.deck-table, .odds-table) tbody tr:not(.section-row):nth-child(even of :not(.section-row)) {
-  background: var(--row-stripe);
+/* Data tables (docs/ux-guidelines.md): one separation cue (faint zebra stripes, no row
+   borders) plus one focus state (hover with a mouse, or a row pinned by click/tap) in the
+   same neutral tint, only stronger. Each row sets --row-tint and its cells paint it, so the
+   opaque sticky column can layer the same tint. Stripes count only data rows, so they
+   restart cleanly after each section header row. */
+:is(.deck-table, .odds-table) tbody tr {
+  --row-tint: transparent;
 }
 
-/* Hover paints the cells, not the row: cells draw on top of the row background, so the
-   highlight shows on striped rows too, whatever the selector specificity. */
-:is(.deck-table, .odds-table) tbody tr:not(.section-row):hover > * {
-  background: var(--row-hover);
+:is(.deck-table, .odds-table) tbody tr:nth-child(even of :not(.section-row)) {
+  --row-tint: var(--row-stripe);
+}
+
+/* Same specificity as the stripe rule, later in the file, so focus wins on striped rows. */
+:is(.deck-table, .odds-table) tbody tr:not(.section-row).pinned {
+  --row-tint: var(--row-hover);
+}
+
+/* Hover only with a real pointer: phones emulate a sticky :hover on tap, which would fight
+   the pinned row. */
+@media (hover: hover) {
+  :is(.deck-table, .odds-table) tbody tr:not(.section-row):hover {
+    --row-tint: var(--row-hover);
+  }
+}
+
+:is(.deck-table, .odds-table) tbody tr > * {
+  background: var(--row-tint);
+}
+
+/* iOS only fires click on elements that look clickable. No cursor shows on touch anyway. */
+@media (hover: none) {
+  tr[data-row] {
+    cursor: pointer;
+  }
 }
 
 .deck-table {
@@ -206,8 +231,12 @@ button:hover {
 
 .deck-table td {
   padding: 0.2rem 0.5rem 0.2rem 0;
-  border-bottom: 1px solid var(--border);
   vertical-align: top;
+}
+
+/* Without row borders, a cell padded flush left would put text on the stripe's edge. */
+.deck-table td:first-child {
+  padding-left: 0.25rem;
 }
 
 .deck-table .count {
@@ -284,15 +313,32 @@ section h2 {
 .odds-table th,
 .odds-table td {
   padding: 0.2rem 0.5rem;
-  border-bottom: 1px solid var(--border);
   text-align: right;
   white-space: nowrap;
 }
 
+/* The header keeps its rule: it separates the column names from the data, not row from row. */
 .odds-table thead th {
   font-size: 0.85rem;
   color: var(--muted);
   font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+/* The card name stays in view while a wide table scrolls sideways on a phone. It must be
+   opaque to cover the numbers sliding under it, so it layers the row tint over the page
+   background. The section label inside its full-width cell sticks the same way. */
+.odds-table .sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background:
+    linear-gradient(var(--row-tint, transparent), var(--row-tint, transparent)), var(--bg);
+}
+
+.odds-table .section-row th > span {
+  position: sticky;
+  left: 0.5rem;
 }
 
 .odds-table tbody th[scope='row'] {

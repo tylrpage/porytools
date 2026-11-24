@@ -5,6 +5,7 @@ import { printLabel } from '../cards/ids.ts'
 import { useCardDb } from '../cards/useCardDb.ts'
 import HelpHeader from '../components/HelpHeader.tsx'
 import Problems from '../components/Problems.tsx'
+import { usePinnedRow } from '../components/usePinnedRow.ts'
 import type { DeckEntry } from '../deck/parse.ts'
 import { groupBySection } from '../deck/share.ts'
 import { useDeckText } from '../deck/useDeckText.ts'
@@ -186,6 +187,7 @@ function OddsTable({
 }) {
   const sections = groupBySection(entries)
   const options = { noMulligan: settings.noMulligan }
+  const pin = usePinnedRow()
   const rowOdds = (row: Row) => {
     const atLeastOne = [{ group: row.ids, atLeast: 1 }]
     const prizes = prizeDistribution(entries, row.ids, options)
@@ -199,9 +201,11 @@ function OddsTable({
   const renderRow = (row: Row) => {
     const o = rowOdds(row)
     return (
-      <tr key={row.key}>
+      <tr key={row.key} data-row={row.key} className={pin.rowClass(row.key)}>
         <td className="count">{row.count}</td>
-        <th scope="row">{row.name}</th>
+        <th scope="row" className="sticky-col">
+          {row.name}
+        </th>
         <td>{percent(o.turn1)}</td>
         <td>{percent(o.turn2)}</td>
         <td>{percent(o.allPrized)}</td>
@@ -226,11 +230,11 @@ function OddsTable({
       <h2>At least one copy</h2>
       <p className="muted small">Hover or tap a column name to see what it counts.</p>
       <div className="table-scroll">
-        <table className="odds-table">
+        <table className="odds-table" ref={pin.ref}>
           <thead>
             <tr>
               <th className="count">#</th>
-              <th>Card</th>
+              <th className="sticky-col">Card</th>
               <HelpHeader
                 label="Turn 1"
                 help="At least one copy seen by your first turn, counting that turn's draw."
@@ -250,7 +254,9 @@ function OddsTable({
             list.length === 0 ? null : (
               <tbody key={section}>
                 <tr className="section-row">
-                  <th colSpan={6}>{section}</th>
+                  <th colSpan={6}>
+                    <span>{section}</span>
+                  </th>
                 </tr>
                 {cardRows(list).map(renderRow)}
               </tbody>
@@ -259,7 +265,9 @@ function OddsTable({
           {groupRows.length > 0 && (
             <tbody>
               <tr className="section-row">
-                <th colSpan={6}>Groups</th>
+                <th colSpan={6}>
+                  <span>Groups</span>
+                </th>
               </tr>
               {groupRows.map(renderRow)}
             </tbody>
