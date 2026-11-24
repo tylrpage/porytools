@@ -39,14 +39,9 @@ export default function Odds() {
   )
 }
 
-interface Settings {
-  noMulligan: boolean
-}
-
 function OddsTool({ db }: { db: CardDb }) {
   const deck = useDeckText(db)
   const [startOpen] = useState(deck.text === '')
-  const [settings, setSettings] = useState<Settings>({ noMulligan: true })
   const [customGroups, setCustomGroups] = useState<NamedGroup[]>([])
 
   const entries = deck.entries
@@ -69,7 +64,8 @@ function OddsTool({ db }: { db: CardDb }) {
     <>
       <p>
         Exact odds of drawing and prizing your cards. Draws here are only the one at the start of
-        each turn; search and draw effects come with the solver.
+        each turn; search and draw effects come with the solver. All odds are after mulligans: every
+        opening hand counted has a Basic Pokémon, as in the real game.
       </p>
       <details className="deck-input" open={startOpen}>
         <summary>
@@ -110,48 +106,14 @@ function OddsTool({ db }: { db: CardDb }) {
               The list isn&apos;t a legal Standard deck; the odds use it as listed ({total} cards).
             </p>
           )}
-          <SettingsBar settings={settings} onChange={setSettings} />
           <Summary entries={entries} />
-          <OddsTable
-            entries={entries}
-            groups={[...groups.builtIn, ...groups.custom]}
-            settings={settings}
-          />
+          <OddsTable entries={entries} groups={[...groups.builtIn, ...groups.custom]} />
           <CustomGroups entries={entries} groups={customGroups} onChange={setCustomGroups} />
-          <Question
-            entries={entries}
-            groups={[...groups.builtIn, ...groups.custom]}
-            settings={settings}
-          />
-          <PrizeBreakdown
-            entries={entries}
-            groups={[...groups.builtIn, ...groups.custom]}
-            settings={settings}
-          />
+          <Question entries={entries} groups={[...groups.builtIn, ...groups.custom]} />
+          <PrizeBreakdown entries={entries} groups={[...groups.builtIn, ...groups.custom]} />
         </>
       )}
     </>
-  )
-}
-
-function SettingsBar({
-  settings,
-  onChange,
-}: {
-  settings: Settings
-  onChange: (s: Settings) => void
-}) {
-  return (
-    <div className="odds-settings">
-      <label>
-        <input
-          type="checkbox"
-          checked={settings.noMulligan}
-          onChange={(e) => onChange({ ...settings, noMulligan: e.target.checked })}
-        />{' '}
-        Redraw mulligans (every opening hand has a Basic)
-      </label>
-    </div>
   )
 }
 
@@ -181,27 +143,18 @@ interface Row {
   basic?: boolean
 }
 
-function OddsTable({
-  entries,
-  groups,
-  settings,
-}: {
-  entries: DeckEntry[]
-  groups: NamedGroup[]
-  settings: Settings
-}) {
+function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGroup[] }) {
   const sections = groupBySection(entries)
-  const options = { noMulligan: settings.noMulligan }
   const pin = usePinnedRow()
   const stickyHead = useStickyHead()
   const rowOdds = (row: Row) => {
     const atLeastOne = [{ group: row.ids, atLeast: 1 }]
-    const prizes = prizeDistribution(entries, row.ids, options)
+    const prizes = prizeDistribution(entries, row.ids)
     return {
-      turn1: chance(entries, atLeastOne, drawsBy(1), options).p,
-      turn2: chance(entries, atLeastOne, drawsBy(2), options).p,
+      turn1: chance(entries, atLeastOne, drawsBy(1)).p,
+      turn2: chance(entries, atLeastOne, drawsBy(2)).p,
       allPrized: row.count <= PRIZE_COUNT ? prizes[row.count] : NaN,
-      onlyBasic: row.basic ? onlyBasicChance(entries, row.ids, options) : null,
+      onlyBasic: row.basic ? onlyBasicChance(entries, row.ids) : null,
     }
   }
   const renderRow = (row: Row) => {
@@ -371,15 +324,7 @@ interface ConditionState {
   atLeast: number
 }
 
-function Question({
-  entries,
-  groups,
-  settings,
-}: {
-  entries: DeckEntry[]
-  groups: NamedGroup[]
-  settings: Settings
-}) {
+function Question({ entries, groups }: { entries: DeckEntry[]; groups: NamedGroup[] }) {
   const options = groupOptions(entries, groups)
   const [conditions, setConditions] = useState<ConditionState[]>([
     { key: options[0].key, atLeast: 1 },
@@ -396,7 +341,6 @@ function Question({
     entries,
     resolved.map((c) => ({ group: c.option.ids, atLeast: c.atLeast })),
     draws,
-    { noMulligan: settings.noMulligan },
   )
 
   const update = (i: number, c: ConditionState) =>
@@ -484,19 +428,11 @@ function Question({
   )
 }
 
-function PrizeBreakdown({
-  entries,
-  groups,
-  settings,
-}: {
-  entries: DeckEntry[]
-  groups: NamedGroup[]
-  settings: Settings
-}) {
+function PrizeBreakdown({ entries, groups }: { entries: DeckEntry[]; groups: NamedGroup[] }) {
   const options = groupOptions(entries, groups)
   const [key, setKey] = useState(options[0].key)
   const option = options.find((o) => o.key === key) ?? options[0]
-  const dist = prizeDistribution(entries, option.ids, { noMulligan: settings.noMulligan })
+  const dist = prizeDistribution(entries, option.ids)
   const copies = copiesIn(entries, option.ids)
   return (
     <section>

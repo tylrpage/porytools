@@ -35,11 +35,15 @@ describe('odds page', () => {
     const mulligan = choose(52, 7) / choose(60, 7)
     expect(screen.getByText('Mulligan chance').nextSibling?.textContent).toBe(pct(mulligan))
 
-    // Plain odds for Ultra Ball by turn 1 (8 cards), once the mulligan rule is off.
-    fireEvent.click(screen.getByLabelText(/Redraw mulligans/))
+    // Ultra Ball by turn 1 (8 cards), counting only opening hands with a Basic.
     const row = screen.getByRole('row', { name: /Ultra Ball/ })
     const turn1 = within(row).getAllByRole('cell')[1].textContent
-    expect(turn1).toBe(pct(1 - choose(56, 8) / choose(60, 8)))
+    const hasBasic = 1 - mulligan
+    // No Ultra Ball in 8 cards, minus the part where the hand also has no Basic (7 Energy,
+    // then the 8th card is one of the other 53, 49 of them not Ultra Ball).
+    const noBallWithBasic =
+      choose(56, 8) / choose(60, 8) - (choose(48, 7) / choose(60, 7)) * (49 / 53)
+    expect(turn1).toBe(pct(1 - noBallWithBasic / hasBasic))
   })
 
   it('answers a question and updates with the turn', async () => {

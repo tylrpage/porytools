@@ -257,14 +257,6 @@ button:hover {
   margin-bottom: 0.5rem;
 }
 
-.odds-settings {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1.25rem;
-  margin: 1rem 0;
-}
-
 .odds-summary {
   display: flex;
   flex-wrap: wrap;
