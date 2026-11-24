@@ -21,9 +21,12 @@ with the reason.
   information only in a hover state.
 - **Label column sticks when a table scrolls sideways** (`.sticky-col`, opaque, layering the
   row tint over the page background), so the card name stays in view on a phone.
-- **Header row follows the window down while the table is in view** (`useStickyHead` on
-  the `<thead>`), so column names stay readable in a long table. Plain `position: sticky`
-  can't, because `.table-scroll` is a scroll container; the hook slides the header instead.
+- **Header row sticks to the top of the window while the table is in view**
+  (`.table-scroll.sticky-head` + `useStickyHead`). Use native `position: sticky`, never a
+  script that moves the header on scroll: that lags a frame behind, so rows flash over it and
+  it sits low on phones. Sticky only works if the wrapper doesn't scroll sideways, so the
+  hook turns sideways scrolling on only when the table doesn't fit. Keep tables narrow
+  enough to fit a 360px phone (smaller text, two-line column names) so the header sticks there.
 - Numbers right-aligned with `tabular-nums` so digits line up; the label column is left-aligned.
 - Wide tables scroll inside `.table-scroll` instead of widening the page on mobile.
 

@@ -309,6 +309,18 @@ section h2 {
   overflow-x: auto;
 }
 
+/* A table whose header row sticks to the top of the window. A box that can scroll sideways
+   would catch the sticky header itself, so it only scrolls when the table doesn't fit
+   (useStickyHead.ts sets data-overflows); then the header stops sticking. */
+.table-scroll.sticky-head:not([data-overflows]) {
+  overflow-x: visible;
+}
+
+.table-scroll.sticky-head thead th {
+  position: sticky;
+  top: 0;
+}
+
 .odds-table {
   width: 100%;
   border-collapse: collapse;
@@ -323,17 +335,15 @@ section h2 {
 }
 
 /* The header keeps its rule: it separates the column names from the data, not row from row.
-   It follows the window down while the table is in view (useStickyHead.ts sets --head-y),
-   so it's opaque and above the body cells. The rule is a shadow, not a border: collapsed
-   table borders belong to the table and wouldn't move with the cell. */
+   It may stick over the rows (.sticky-head), so it's opaque and above the body cells. The
+   rule is a shadow, not a border: a collapsed table border stays behind when the cell sticks. */
 .odds-table thead th {
   font-size: 0.85rem;
   color: var(--muted);
   font-weight: 600;
+  vertical-align: bottom;
   background: var(--bg);
   box-shadow: inset 0 -1px var(--border);
-  translate: 0 var(--head-y, 0);
-  position: relative;
   z-index: 2;
 }
 
@@ -362,6 +372,28 @@ section h2 {
   font-weight: normal;
   white-space: normal;
   min-width: 8rem;
+}
+
+/* Phones: slightly smaller text, tighter cells, two-line column names, and a narrower card
+   column, so the table fits a 360px-wide phone without sideways scrolling and its header can
+   stick (.sticky-head). Long one-word names ("Determination") set the card column's width. */
+@media (max-width: 30rem) {
+  .odds-table {
+    font-size: 0.875rem;
+  }
+
+  .odds-table th,
+  .odds-table td {
+    padding-inline: 0.3rem;
+  }
+
+  .odds-table thead th {
+    white-space: normal;
+  }
+
+  .odds-table tbody th[scope='row'] {
+    min-width: 6rem;
+  }
 }
 
 /* Column header with an explanation (HelpHeader.tsx). Shown on hover, focus, or tap. */

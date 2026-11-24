@@ -235,9 +235,9 @@ function OddsTable({
     <section>
       <h2>At least one copy</h2>
       <p className="muted small">Hover or tap a column name to see what it counts.</p>
-      <div className="table-scroll">
+      <div className="table-scroll sticky-head" ref={stickyHead}>
         <table className="odds-table" ref={pin.ref}>
-          <thead ref={stickyHead}>
+          <thead>
             <tr>
               <th className="count">#</th>
               <th className="sticky-col">Card</th>

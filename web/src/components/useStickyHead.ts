@@ -1,43 +1,31 @@
 import { useCallback } from 'react'
 
 /**
- * Keeps a table's header row at the top of the window while any of the table is in view.
+ * Lets a table's header row stick to the top of the window (`.table-scroll.sticky-head` in
+ * index.css), falling back to sideways scrolling when the table is too wide for its box.
  *
- * Plain `position: sticky; top: 0` can't do this here: the table sits in a `.table-scroll`
- * box (`overflow-x: auto`) so it can scroll sideways on a phone, and a scroll container is
- * what sticky sticks to. So we slide the header down with a CSS variable instead, read by
- * `translate` on the header cells (see index.css), clamped so it never leaves the table.
+ * `position: sticky` sticks to the nearest scrolling box. A `.table-scroll` that can scroll
+ * sideways is one, even when it never moves, so the header would stick inside it, not to the
+ * window. So the box only scrolls when it must: this hook sets `data-overflows` on it when the
+ * table is wider than it, and the CSS turns sideways scrolling on (and sticking off) then.
+ * It only re-measures when a size changes, never while scrolling, so the browser does the
+ * sticking itself with no lag.
  *
- * Put `ref` on the `<thead>`.
+ * Put `ref` on the `.table-scroll` element.
  */
 export function useStickyHead() {
-  return useCallback((head: HTMLTableSectionElement | null) => {
-    const table = head?.closest('table')
-    if (!head || !table) return
-    let frame = 0
+  return useCallback((box: HTMLElement | null) => {
+    const table = box?.querySelector('table')
+    if (!box || !table) return
     const update = () => {
-      frame = 0
-      const top = table.getBoundingClientRect().top
-      const max = table.offsetHeight - head.offsetHeight
-      const y = Math.min(Math.max(-top, 0), Math.max(max, 0))
-      head.style.setProperty('--head-y', `${y}px`)
+      // An attribute rather than a class, so React re-rendering className can't wipe it.
+      box.toggleAttribute('data-overflows', table.offsetWidth > box.clientWidth + 1)
     }
-    // At most one update per frame, however many scroll events arrive.
-    const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(update)
-    }
-    window.addEventListener('scroll', schedule, { passive: true })
-    window.addEventListener('resize', schedule)
-    // The table grows or shrinks when the deck changes, without any scroll. (Test DOMs lack
-    // ResizeObserver, hence the `?.`.)
-    const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule)
-    resize?.observe(table)
     update()
-    return () => {
-      window.removeEventListener('scroll', schedule)
-      window.removeEventListener('resize', schedule)
-      resize?.disconnect()
-      cancelAnimationFrame(frame)
-    }
+    // Test DOMs lack ResizeObserver, hence the `?.`.
+    const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
+    resize?.observe(box)
+    resize?.observe(table)
+    return () => resize?.disconnect()
   }, [])
 }
