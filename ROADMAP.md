@@ -81,11 +81,15 @@ The foundation for the solver output, replays, and mid-game analysis.
 ## M4 — Rust solver core (goldfish simulator) ☐
 - ☐ Rust crate builds native + WASM (`wasm-pack`); runs in a Web Worker; CI runs
   `cargo test`
+- ☐ Extend the Claude Code hooks (`.claude/hooks/`) to Rust: `rustfmt` on edit, `cargo
+  check`/`clippy` at stop when `solver/` changed
 - ☐ Rules engine: setup (Basics, mulligans, opponent's extra draws ignored for solo),
   prizes, turn structure, going first restrictions, supporter/energy/retreat
   once-per-turn, evolution timing
 - ☐ Effect DSL v0 + core cards: Basic Energy, Nest Ball, Ultra Ball, Buddy-Buddy Poffin,
   a draw Supporter, Rare Candy, plus a couple of Basics/evolutions
+- ☐ Once the DSL settles: a project Claude Code skill (`.claude/skills/`) for card-effect
+  authoring (YAML shape, per-card test, status rules, review checklist), used through M5
 - ☐ Goal language v0: "Pokémon X in play", counts, Active/Bench, and/or, by turn N
 - ☐ Fixed heuristic policy Monte Carlo (**lower bound**) and clairvoyant search (**upper
   bound**)

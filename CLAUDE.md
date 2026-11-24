@@ -21,6 +21,17 @@ Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
   first appear in code or PR notes, but don't slow the work down.
 - Plays the game. Treat them as the domain expert and the final reviewer for card effects.
 
+## Dev workflow (Claude Code)
+- Keep this file and `ROADMAP.md` current as work lands.
+- Project hooks in `.claude/settings.json` (scripts in `.claude/hooks/`): Prettier formats
+  each edited file under `web/` or `data/*.json`; at stop, if TypeScript in `web/` has
+  uncommitted changes, `tsc -b` + `oxlint` run and errors block the stop to be fixed.
+  Rust equivalents get added with the solver crate (M4).
+- Claude commits to `main` at coherent checkpoints (checks passing); the owner decides when
+  to push, since pushing deploys the site.
+- Run `/code-review` only after the owner accepts a milestone, not per change.
+- Prefer a few project-specific skills/hooks over large generic config bundles.
+
 ## Constraints
 - **Standard format only.** Legality comes from a configurable list of regulation marks,
   not hardcoded per card.
