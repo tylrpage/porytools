@@ -264,9 +264,7 @@ function CustomGroups({
   return (
     <section>
       <h2>Custom groups</h2>
-      <p className="muted small">
-        Count several cards as one, e.g. all your pokemon search items.
-      </p>
+      <p className="muted small">Count several cards as one, e.g. all your Pokémon search items.</p>
       {groups.map((g, i) => (
         <fieldset key={g.key} className="group-editor">
           <legend>
