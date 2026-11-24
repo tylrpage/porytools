@@ -19,6 +19,7 @@ import {
   type RawSet,
   type Upstream,
 } from './normalize.ts'
+import { indexTcgdexSets, pickTcgdexImages, type TcgdexIndex } from './images.ts'
 import { convertCard, convertSet, type TcgdexCard, type TcgdexSet } from './tcgdex.ts'
 
 const REPO = 'PokemonTCG/pokemon-tcg-data'
@@ -100,6 +101,45 @@ async function fetchTcgdex(setIds: string[]): Promise<Upstream & { updated: stri
   return result
 }
 
+/** Every TCGdex set with its card list, for finding scans (cached; `--refresh` updates). */
+async function fetchTcgdexIndex(aliases: Record<string, string>): Promise<TcgdexIndex> {
+  const dir = join(CACHE_DIR, 'tcgdex', 'sets')
+  const list = await cachedJson<{ id: string }[]>(`${TCGDEX_API}/sets`, join(dir, 'index.json'))
+  const sets = await mapLimit(list, 8, (s) =>
+    cachedJson<TcgdexSet>(
+      `${TCGDEX_API}/sets/${encodeURIComponent(s.id)}`,
+      join(dir, `${s.id}.json`),
+    ),
+  )
+  return indexTcgdexSets(sets, aliases)
+}
+
+/**
+ * Whether a TCGdex scan exists (HEAD request). Scans found are cached; misses are checked
+ * again next build, since TCGdex adds scans for new sets over time.
+ */
+async function tcgdexScanChecker(): Promise<{
+  exists: (base: string) => Promise<boolean>
+  save: () => Promise<void>
+}> {
+  const file = join(CACHE_DIR, 'tcgdex', 'scans.json')
+  let known = new Set<string>()
+  try {
+    known = new Set(JSON.parse(await readFile(file, 'utf8')) as string[])
+  } catch {
+    // Not cached yet.
+  }
+  return {
+    exists: async (base) => {
+      if (known.has(base)) return true
+      const res = await fetch(`${base}/low.webp`, { method: 'HEAD' })
+      if (res.ok) known.add(base)
+      return res.ok
+    },
+    save: () => writeFile(file, JSON.stringify([...known].sort())),
+  }
+}
+
 /**
  * One card per line: small, and git diffs show exactly which cards changed when the data
  * is rebuilt.
@@ -148,7 +188,7 @@ async function main() {
   if (tcgdex.sets.length > 0) {
     sources.push({ name: 'TCGdex', url: 'https://tcgdex.dev', version: tcgdex.updated })
   }
-  const { data, warnings, errors } = buildCardData(
+  const { data, preferredPrints, warnings, errors } = buildCardData(
     upstream,
     overrides,
     config,
@@ -164,6 +204,18 @@ async function main() {
     )
     process.exit(1)
   }
+
+  const scans = await tcgdexScanChecker()
+  const images = await pickTcgdexImages(
+    data.cards,
+    preferredPrints,
+    await fetchTcgdexIndex(config.setCodeAliases),
+    scans.exists,
+  )
+  await scans.save()
+  console.log(
+    `images: ${images.tcgdex} TCGdex, ${images.fallback} pokemontcg.io, ${images.none} none`,
+  )
 
   await mkdir(dirname(OUT_FILE), { recursive: true })
   const json = serialize(data)

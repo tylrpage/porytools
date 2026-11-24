@@ -48,6 +48,8 @@ export interface RawCard {
   weaknesses?: { type: string; value?: string }[]
   resistances?: { type: string; value?: string }[]
   convertedRetreatCost?: number
+  /** Card image URLs; `small` is about 245×342. */
+  images?: { small?: string; large?: string }
 }
 
 export interface Upstream {
@@ -78,6 +80,8 @@ export interface Overrides {
 
 export interface BuildResult {
   data: CardData
+  /** Card ID → its print IDs, best first (display print first), for picking images. */
+  preferredPrints: Record<string, string[]>
   /** Worth a look, but the output is still usable. */
   warnings: string[]
   /** The build must not ship with these. */
@@ -232,11 +236,11 @@ function energyType(value: string, where: string): EnergyType {
   throw new Error(`unknown energy type "${value}" in ${where}`)
 }
 
-/** A card's game text without its identity fields (id, prints, mark). */
+/** A card's game text without its identity fields (id, prints, mark, image). */
 // (`T extends unknown ? … : never` applies Omit to each member of the union separately, so
 // the `kind` discriminant still narrows the result.)
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
-export type CardText = DistributiveOmit<Card, 'id' | 'prints' | 'mark'>
+export type CardText = DistributiveOmit<Card, 'id' | 'prints' | 'mark' | 'image'>
 
 export function isBasicEnergy(raw: RawCard): boolean {
   return (
@@ -345,6 +349,7 @@ interface Print {
   setOrder: number
   number: string
   rarity: number
+  image?: string
 }
 
 /**
@@ -359,12 +364,21 @@ function rarityRank(rarity: string | undefined): number {
   return r === 'promo' ? 1 : 2
 }
 
-/** The print the site and solver use for a card: newest regular-rarity print. */
-function displayPrint(prints: Print[]): Print {
-  return prints.reduce((best, p) =>
-    p.rarity < best.rarity || (p.rarity === best.rarity && comparePrints(p, best) > 0) ? p : best,
-  )
+/**
+ * Prints best first: regular rarity, then promos, then alternate arts; newest first within
+ * each. The first is the display print, the one the site and solver use for the card.
+ */
+function byPreference(a: Print, b: Print): number {
+  return a.rarity - b.rarity || comparePrints(b, a)
 }
+
+/**
+ * Image hosts the site may link to. pokemon-tcg-data points its newer sets at Scrydex, a
+ * paid API whose terms we haven't cleared, so those links are dropped (TCGdex covers them).
+ */
+const IMAGE_HOSTS = ['images.pokemontcg.io', 'assets.tcgdex.net']
+const allowedImage = (url: string | undefined) =>
+  url !== undefined && IMAGE_HOSTS.includes(new URL(url).hostname) ? url : undefined
 
 function comparePrints(a: Print, b: Print): number {
   if (a.setOrder !== b.setOrder) return a.setOrder - b.setOrder
@@ -416,6 +430,7 @@ export function buildCardData(
     setOrder: setOrder.get(setId)!,
     number: raw.number,
     rarity: rarityRank(raw.rarity),
+    ...(allowedImage(raw.images?.small) ? { image: raw.images!.small } : {}),
   })
 
   // Pass 1: every print with a legal mark defines a card.
@@ -456,15 +471,27 @@ export function buildCardData(
 
   // Assemble cards.
   const result: Card[] = []
+  const preferredPrints: Record<string, string[]> = {}
   const firstPrint = new Map<string, Print>()
   for (const { text, prints } of groups.values()) {
     prints.sort(comparePrints)
     const marks = prints.map((p) => p.mark).filter((m): m is string => m !== null)
     const mark =
       text.kind === 'energy' && text.basic ? null : (marks.sort(compareMarks).at(-1) ?? null)
-    const id = displayPrint(prints).id
+    const preferred = [...prints].sort(byPreference)
+    const id = preferred[0].id
+    // The best print's image that the source has (the display print's when it has one), so
+    // it isn't a full art when avoidable. build-cards.ts swaps in TCGdex scans afterwards.
+    const image = preferred.find((p) => p.image)?.image
+    preferredPrints[id] = preferred.map((p) => p.id)
     firstPrint.set(id, prints[0])
-    result.push({ ...text, id, mark, prints: prints.map((p) => p.id) } as Card)
+    result.push({
+      ...text,
+      id,
+      mark,
+      prints: prints.map((p) => p.id),
+      ...(image ? { image } : {}),
+    } as Card)
   }
   // Ordered by first release, so a new reprint doesn't move a card around in the file.
   result.sort((a, b) => comparePrints(firstPrint.get(a.id)!, firstPrint.get(b.id)!))
@@ -504,6 +531,7 @@ export function buildCardData(
       sets: outSets,
       cards: result,
     },
+    preferredPrints,
     warnings,
     errors,
   }

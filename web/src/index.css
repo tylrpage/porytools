@@ -382,6 +382,64 @@ section h2 {
   }
 }
 
+/* Card name that shows the card's image (CardName.tsx). Looks like plain text. */
+.card-name {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: default;
+}
+
+/* The image floats above the page (portal, fixed) and never catches the pointer, so it
+   doesn't steal hover from the names under it. */
+.card-preview {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+  overflow: hidden;
+  animation: card-preview-in 80ms ease-out;
+}
+
+.card-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* TCGdex's shape; the odd pokemontcg.io fallback (245×342) is trimmed by a pixel or two. */
+  aspect-ratio: 245 / 337;
+  object-fit: cover;
+}
+
+.card-preview-missing {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.card-preview-missing strong {
+  color: var(--text);
+}
+
+@keyframes card-preview-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-preview {
+    animation: none;
+  }
+}
+
 /* Column header with an explanation (HelpHeader.tsx). Shown on hover, focus, or tap. */
 .col-help {
   position: relative;

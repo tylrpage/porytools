@@ -50,6 +50,14 @@ with the reason.
   left out) and labels same-name cards with their print. Never hand-roll a `<select>` of
   cards; extend `CardSelect` instead, so all pickers keep the same behaviour and look.
 
+- **Card names show the card's image** (`CardName` in `web/src/components/CardName.tsx`):
+  wrap every card name in a table or list with it, so look-alike cards (several Applin) can
+  be told apart. It opens on mouse hover after a short delay (instant while moving between
+  names), on keyboard focus, or on tap; Escape, a tap elsewhere, or scrolling closes it. The
+  preview never catches the pointer, so it doesn't block the names under it. The image is
+  the card's display print (the same print everywhere). Same-name cards also get their print
+  in the label (`cardLabeler`), because tables must be readable without hover.
+
 ## General
 - Every new colour must work in both light and dark mode: use or derive from the `:root`
   tokens, never hardcode a one-theme colour.

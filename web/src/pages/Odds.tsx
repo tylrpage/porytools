@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { CardDb } from '../cards/db.ts'
+import type { Card } from '../cards/types.ts'
 import { useCardDb } from '../cards/useCardDb.ts'
+import CardName from '../components/CardName.tsx'
 import CardSelect from '../components/CardSelect.tsx'
-import { cardOptions } from '../components/cardOptions.ts'
+import { cardLabeler, cardOptions } from '../components/cardOptions.ts'
 import HelpHeader from '../components/HelpHeader.tsx'
 import Problems from '../components/Problems.tsx'
+import usePrefetchCardImages from '../components/usePrefetchCardImages.ts'
 import { useStickyHead } from '../components/useStickyHead.ts'
 import type { DeckEntry } from '../deck/parse.ts'
 import { SAMPLE_DECKLIST } from '../deck/sample.ts'
@@ -139,6 +142,8 @@ interface Row {
   name: string
   count: number
   ids: ReadonlySet<string>
+  /** Set on single-card rows, whose name shows the card's image. */
+  card?: Card
   /** A Basic Pokémon card row: gets the "only Basic" column. */
   basic?: boolean
 }
@@ -146,6 +151,8 @@ interface Row {
 function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGroup[] }) {
   const sections = groupBySection(entries)
   const stickyHead = useStickyHead()
+  usePrefetchCardImages(entries.map((e) => e.card))
+  const label = cardLabeler(entries)
   const rowOdds = (row: Row) => {
     const atLeastOne = [{ group: row.ids, atLeast: 1 }]
     const prizes = prizeDistribution(entries, row.ids)
@@ -162,7 +169,7 @@ function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGro
       <tr key={row.key}>
         <td className="count">{row.count}</td>
         <th scope="row" className="sticky-col">
-          {row.name}
+          {row.card ? <CardName card={row.card} label={row.name} /> : row.name}
         </th>
         <td>{percent(o.turn1)}</td>
         <td>{percent(o.turn2)}</td>
@@ -174,9 +181,10 @@ function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGro
   const cardRows = (list: DeckEntry[]) =>
     list.map((e) => ({
       key: `card:${e.card.id}`,
-      name: e.card.name,
+      name: label(e.card),
       count: e.count,
       ids: new Set([e.card.id]),
+      card: e.card,
       basic: isBasicPokemon(e.card),
     }))
   const groupRows = groups
@@ -186,7 +194,9 @@ function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGro
   return (
     <section>
       <h2>At least one copy</h2>
-      <p className="muted small">Hover or tap a column name to see what it counts.</p>
+      <p className="muted small">
+        Hover or tap a column name to see what it counts, or a card name to see the card.
+      </p>
       <div className="table-scroll sticky-head" ref={stickyHead}>
         <table className="odds-table">
           <thead>

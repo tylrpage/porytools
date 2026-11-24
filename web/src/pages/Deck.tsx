@@ -3,7 +3,9 @@ import { Link } from 'react-router'
 import type { CardDb } from '../cards/db.ts'
 import type { Card } from '../cards/types.ts'
 import { useCardDb } from '../cards/useCardDb.ts'
+import CardName from '../components/CardName.tsx'
 import Problems from '../components/Problems.tsx'
+import usePrefetchCardImages from '../components/usePrefetchCardImages.ts'
 import type { DeckEntry } from '../deck/parse.ts'
 import { SAMPLE_DECKLIST } from '../deck/sample.ts'
 import { groupBySection } from '../deck/share.ts'
@@ -90,6 +92,7 @@ function DeckEditor({ db }: { db: CardDb }) {
 }
 
 function DeckList({ entries, db }: { entries: DeckEntry[]; db: CardDb }) {
+  usePrefetchCardImages(entries.map((e) => e.card))
   return (
     <div className="deck-sections">
       {groupBySection(entries).map(([section, list]) =>
@@ -103,7 +106,9 @@ function DeckList({ entries, db }: { entries: DeckEntry[]; db: CardDb }) {
                 {list.map((e, i) => (
                   <tr key={i}>
                     <td className="count">{e.count}</td>
-                    <td>{e.card.name}</td>
+                    <td>
+                      <CardName card={e.card} />
+                    </td>
                     <td className="muted">{describe(e.card)}</td>
                     <td className="muted print">{db.printLabel(e.card.id)}</td>
                   </tr>

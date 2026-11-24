@@ -1,4 +1,5 @@
 import { printLabel } from '../cards/ids.ts'
+import type { Card } from '../cards/types.ts'
 import type { DeckEntry } from '../deck/parse.ts'
 import { groupBySection } from '../deck/share.ts'
 import type { NamedGroup } from '../odds/groups.ts'
@@ -16,16 +17,25 @@ export interface CardOptionSection {
 }
 
 /**
+ * Labels for the deck's cards: the name, plus the print for cards that share a name with
+ * another card in the deck (two different Applin), so they can be told apart.
+ */
+export function cardLabeler(entries: DeckEntry[]): (card: Card) => string {
+  const names = new Map<string, number>()
+  for (const e of entries) names.set(e.card.name, (names.get(e.card.name) ?? 0) + 1)
+  return (card) =>
+    (names.get(card.name) ?? 0) > 1 ? `${card.name} (${printLabel(card.id)})` : card.name
+}
+
+/**
  * The deck's cards by section (Pokémon, Trainer, Energy), then non-empty groups. Empty
  * sections are left out. Same-name cards get their print label so they can be told apart.
  */
 export function cardSections(entries: DeckEntry[], groups: NamedGroup[]): CardOptionSection[] {
-  const names = new Map<string, number>()
-  for (const e of entries) names.set(e.card.name, (names.get(e.card.name) ?? 0) + 1)
+  const label = cardLabeler(entries)
   const cardOption = (e: DeckEntry): CardOption => ({
     key: `card:${e.card.id}`,
-    label:
-      (names.get(e.card.name) ?? 0) > 1 ? `${e.card.name} (${printLabel(e.card.id)})` : e.card.name,
+    label: label(e.card),
     ids: new Set([e.card.id]),
   })
   const sections: CardOptionSection[] = groupBySection(entries).map(([section, list]) => ({

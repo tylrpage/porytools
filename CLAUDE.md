@@ -63,7 +63,8 @@ commits can sweep them in. So parallel work that edits files goes in a git workt
 - **Standard format only.** Legality comes from a configurable list of regulation marks,
   not hardcoded per card.
 - Keep running costs near zero: static site, all compute client-side, no backend at first.
-- Non-commercial fan site. Text only, so do not host card images. Every page carries a
+- Non-commercial fan site. Never host card images: card previews link to TCGdex's CDN
+  (pokemontcg.io as fallback, never Scrydex), one URL per card in `cards.json`. Every page carries a
   "not affiliated with Nintendo / The Pokémon Company / Creatures / GAME FREAK" disclaimer.
 - The name contains part of a Pokémon trademark (Porygon). Keep the site non-commercial and
   clearly disclaimed.

@@ -8,6 +8,7 @@ export interface TcgdexSet {
   id: string
   name: string
   releaseDate: string
+  serie?: { id: string }
   abbreviation?: { official?: string }
   cards: { id: string; localId: string; name: string }[]
 }
@@ -19,6 +20,8 @@ export interface TcgdexCard {
   category: 'Pokemon' | 'Trainer' | 'Energy'
   rarity?: string
   regulationMark?: string
+  /** Image base URL; append "/low.webp" (about 245×337) or "/high.webp". */
+  image?: string
   hp?: number
   types?: string[]
   evolveFrom?: string
@@ -82,6 +85,9 @@ export function convertCard(card: TcgdexCard): RawCard {
     name: card.name,
     number: card.localId,
     rarity: card.rarity,
+    ...(card.image
+      ? { images: { small: `${card.image}/low.webp`, large: `${card.image}/high.webp` } }
+      : {}),
     ...(card.regulationMark ? { regulationMark: card.regulationMark } : {}),
   }
 

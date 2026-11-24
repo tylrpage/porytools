@@ -44,6 +44,12 @@ Repo, toolchain, and a live (empty) site.
 - ☑ Real-decklist test set (`npm run fetch-decklists` → `data/test-decklists.json`):
   decklists only, from top Limitless archetypes, for internal tests; all 50 parse and
   validate
+- ☑ Card images: `cards.json` has one small-image URL per card, linked, never hosted.
+  TCGdex scans (~15 KB webp) of the best print that has one (display print first), checked
+  to exist at build time (`scripts/cards/images.ts`); pokemontcg.io as fallback; Scrydex
+  links dropped (terms not cleared). 2156 TCGdex, 1 fallback, 19 MEP promos without a scan
+- ◐ Hover / tap a card name to see the card (`CardName`) in the odds and deck tables;
+  **[owner]** tuning size, delay and placement
 - ☐ Refresh `cards.json` automatically (scheduled GitHub Action opening a PR) when sets
   release
 - ☐ Later: "before / after rotation" toggle on the site (the data already supports it)

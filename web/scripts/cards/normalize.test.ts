@@ -95,6 +95,42 @@ describe('buildCardData', () => {
     expect(promoOnly.data.cards[0].id).toBe('TEF-200')
   })
 
+  it("uses the display print's image, else the best print with one, without splitting reprints", () => {
+    const ball = (id: string, image?: string, rarity = 'Uncommon'): RawCard => ({
+      ...item(id, 'Ultra Ball', 'I', [ULTRA]),
+      rarity,
+      ...(image ? { images: { small: `https://images.pokemontcg.io/${image}` } } : {}),
+    })
+    const both = build({ sv1: [ball('sv1-196', 'svi.png')], me1: [ball('me1-131', 'meg.png')] })
+    expect(both.data.cards).toHaveLength(1)
+    expect(both.data.cards[0]).toMatchObject({
+      id: 'MEG-131',
+      image: 'https://images.pokemontcg.io/meg.png',
+    })
+    // No scan of the display print: an older regular print beats a newer full art.
+    const fallback = build({
+      sv1: [ball('sv1-196', 'svi.png')],
+      me1: [ball('me1-131'), ball('me1-250', 'full-art.png', 'Illustration Rare')],
+    })
+    expect(fallback.data.cards[0]).toMatchObject({
+      id: 'MEG-131',
+      image: 'https://images.pokemontcg.io/svi.png',
+    })
+    expect(fallback.preferredPrints['MEG-131']).toEqual(['MEG-131', 'SVI-196', 'MEG-250'])
+    const none = build({ me1: [ball('me1-131')] })
+    expect(none.data.cards[0]).not.toHaveProperty('image')
+    // Scrydex links are dropped (terms not cleared).
+    const scrydex = build({
+      me1: [
+        {
+          ...ball('me1-131'),
+          images: { small: 'https://images.scrydex.com/pokemon/me1-131/small' },
+        },
+      ],
+    })
+    expect(scrydex.data.cards[0]).not.toHaveProperty('image')
+  })
+
   it('drops the pictured character from Trainer names, so those prints merge', () => {
     const boss = (id: string, name: string, mark: string) => ({
       ...item(id, name, mark, [

@@ -52,6 +52,12 @@ interface CardBase {
   prints: string[]
   /** ACE SPEC: at most one ACE SPEC card per deck. */
   aceSpec?: true
+  /**
+   * URL of a small card image on the data source's CDN (the display print's, or another
+   * print's when it has none). The site links to it and never hosts images itself. Missing
+   * when no print has one, e.g. cards added by hand in data/overrides.json.
+   */
+  image?: string
 }
 
 export interface PokemonCard extends CardBase {
