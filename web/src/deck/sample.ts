@@ -1,37 +1,31 @@
 /** A known-good decklist for testing: one tap fills the decklist field (handy on a phone). */
-export const SAMPLE_DECKLIST = `Pokémon: 20
-1 Seaking PRE 21
-1 Shaymin DRI 10
-1 Rabsca TEF 24
-3 Thwackey TWM 15
-1 Psyduck ASC 39
-2 Goldeen PRE 20
-4 Applin PRE 9
-3 Dipplin PRE 10
-1 Rellor TEF 23
-3 Grookey TWM 14
+export const SAMPLE_DECKLIST = `Pokémon: 19
+4 Dreepy TWM 128
+4 Drakloak TWM 129
+3 Dragapult ex TWM 130
+2 Munkidori TWM 95
+2 Budew ASC 16
+1 Dunsparce TEF 128
+1 Dudunsparce TEF 129
+1 Meowth ex POR 62
+1 Fezandipiti ex ASC 142
 
-Trainer: 35
-2 Bug Catching Set PRE 102
-2 Ultra Ball SVI 196
-2 Air Balloon ASC 181
+Trainer: 32
+4 Lillie's Determination MEG 119
+3 Boss's Orders MEG 114
+2 Crispin SCR 133
+1 Rosa's Encouragement POR 84
+1 Judge POR 76
 4 Buddy-Buddy Poffin TEF 144
 4 Poké Pad POR 81
-2 Gladion's Final Battle PBL 77
-2 Brave Bangle WHT 80
-1 Switch MEG 130
-4 Lillie's Determination MEG 119
-1 Kieran PRE 113
-1 Secret Box TWM 163
-1 Sacred Ash DRI 168
-1 Tool Scrapper ASC 212
-2 Night Stretcher SFA 61
-4 Festival Grounds PRE 108
-2 Boss's Orders PAL 172
+4 Crushing Hammer POR 71
+3 Ultra Ball MEG 131
+3 Night Stretcher ASC 196
+1 Unfair Stamp TWM 165
+2 Risky Ruins MEG 127
 
-Energy: 5
-4 Basic {G} Energy MEE 1
-1 Growing Grass Energy POR 86
-
-Total Cards: 60
+Energy: 9
+3 Fire Energy MEE 10
+3 Psychic Energy MEE 13
+3 Darkness Energy MEE 15
 `
