@@ -7,6 +7,7 @@ import HelpHeader from '../components/HelpHeader.tsx'
 import Problems from '../components/Problems.tsx'
 import { usePinnedRow } from '../components/usePinnedRow.ts'
 import type { DeckEntry } from '../deck/parse.ts'
+import { SAMPLE_DECKLIST } from '../deck/sample.ts'
 import { groupBySection } from '../deck/share.ts'
 import { useDeckText } from '../deck/useDeckText.ts'
 import { percent } from '../odds/format.ts'
@@ -78,6 +79,9 @@ function OddsTool({ db }: { db: CardDb }) {
             </span>
           )}
         </summary>
+        <button type="button" className="sample-list" onClick={() => deck.setText(SAMPLE_DECKLIST)}>
+          Use Sample List
+        </button>
         <textarea
           className="decklist-input"
           aria-label="Decklist"

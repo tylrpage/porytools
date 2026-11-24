@@ -130,6 +130,11 @@ button:hover {
 
 /* Deck page */
 
+.sample-list {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
 .decklist-input {
   width: 100%;
   font:

@@ -6,6 +6,7 @@ import { useCardDb } from '../cards/useCardDb.ts'
 import Problems from '../components/Problems.tsx'
 import { usePinnedRow } from '../components/usePinnedRow.ts'
 import type { DeckEntry } from '../deck/parse.ts'
+import { SAMPLE_DECKLIST } from '../deck/sample.ts'
 import { groupBySection } from '../deck/share.ts'
 import { useDeckText } from '../deck/useDeckText.ts'
 
@@ -44,6 +45,9 @@ function DeckEditor({ db }: { db: CardDb }) {
         Paste a decklist exported from PTCG Live or Limitless. Only Standard-legal cards (regulation
         mark {db.data.oldestLegalMark} and newer) are recognized.
       </p>
+      <button type="button" className="sample-list" onClick={() => onChange(SAMPLE_DECKLIST)}>
+        Use Sample List
+      </button>
       <textarea
         className="decklist-input"
         aria-label="Decklist"
