@@ -80,19 +80,25 @@ so every number below is exact.
 - ☐ Later: share links that carry custom groups and questions (the decklist link already
   works)
 
-## M3 — Game state & event-log format (design with owner) ☐
+## M3 — Game state & event-log format (design with owner) ◐
 The foundation for the solver output, replays, and mid-game analysis.
-- ☐ Design session: zones, card instances vs card IDs, hidden information, event types,
-  versioning, compact encoding
-- ☐ Write the spec (`docs/game-format.md`) with worked examples: an opening setup and a
-  T1–T2 sequence
-- ☐ Rust types (serde) + generated TS types; round-trip tests
+- ☑ Design session (2026-11-24): spelled-out changes are the truth (no card effects needed
+  to fold); per-record viewpoint (player or all-seeing, projectable); tree of nodes for
+  branches; instances only while trackable (deck = pool, shuffle ends instances);
+  `guessed` / `inferred` flags; "turn N" = that player's Nth turn; no usernames
+- ◐ Spec (`docs/game-format.md`) with worked examples: opening setup, a T1 with a branch,
+  and a real PTCG Live game hand-converted (tests the format against Live's partial info).
+  Includes the **state registry** (every recorded fact and which cards need it).
+  **[owner]** review
+- ☐ Rust crate builds native + WASM (`wasm-pack`) and runs in the site; CI runs
+  `cargo test` (moved up from M4: the fold lives in Rust)
+- ☐ Rust types (serde) + TS types generated with `ts-rs`; fold, consistency check,
+  projection; round-trip tests over the spec's examples and the full Live game fixture
 - ☐ Minimal replay viewer in the site: load a record, scrub events, see the board as text.
   Hand-written sample records only at this point.
 
 ## M4 — Rust solver core (goldfish simulator) ☐
-- ☐ Rust crate builds native + WASM (`wasm-pack`); runs in a Web Worker; CI runs
-  `cargo test`
+- ☐ Solver runs in a Web Worker (the crate itself is set up in M3)
 - ☐ Extend the Claude Code hooks (`.claude/hooks/`) to Rust: `rustfmt` on edit, `cargo
   check`/`clippy` at stop when `solver/` changed
 - ☐ Rules engine: setup (Basics, mulligans, opponent's extra draws ignored for solo),
@@ -139,8 +145,11 @@ lists are only a test set.
 - ☐ Goals v2: cards in hand/discard, damage thresholds (begin damage math)
 
 ## M9 — Game recorder & replays ☐
-- ☐ Tool to record a real game into the M3 format (manual entry UI first; investigate
-  importing the PTCG Live battle log)
+- ☐ Tool to record a real game into the M3 format (manual entry UI first)
+- ☐ PTCG Live battle-log import (feasible: see "What a Live import needs" in
+  `docs/game-format.md`): sentences → actions, rule-implied events, names → prints by
+  decklist / attacks / HP, copies by constraints else `guessed`, known effects added as
+  `inferred`
 - ☐ Replay viewer with scrubbing; "analyze from here" opens M8 on any moment
 - ☐ Shareable replay links
 
@@ -151,5 +160,4 @@ lists are only a test set.
   `Psychic Energy MEE`.
 - Does pokemon-tcg-data add the next set (likely January)? If not, switch new sets to
   TCGdex.
-- Exact game-record format (M3 design session).
 - Which meta decks to target first (M5).

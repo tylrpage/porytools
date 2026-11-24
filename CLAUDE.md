@@ -102,7 +102,11 @@ One format serves the solver, the opening analysis, and the future replay record
   opponent hand = count only. The solver may only branch on what the player knows.
 - Rust is the source of truth for the types (serde). TS types are generated from it, not
   hand-written twice. The format gets a version field from day one.
-- Design the exact format together with the owner before coding it (ROADMAP M3).
+- The spec is `docs/game-format.md` (designed with the owner in M3). Records spell out every
+  change, so folding needs card data but never card effects; legality is the engine's job.
+- Its **state registry** lists every fact the state records and which cards need it. When a
+  card needs a fact that isn't listed, that's a Rust/fold change: add the row first.
+- "Turn N" always means that player's Nth turn (records, UI, and the odds page).
 
 ## Goals (solver targets)
 A small, composable goal language rather than hardcoded checks. Start with:
