@@ -11,7 +11,8 @@ with the reason.
   only; section header rows don't count and the stripes restart after them. A rule under the
   header row is fine: it separates names from data, not row from row.
 - **One focus state, in the same neutral tint as the stripe, only stronger.** Hover (mouse
-  only, `@media (hover: hover)`) and a row pinned by click or tap (`usePinnedRow`) both show
+  only, `@media (hover: hover)`) and a row pinned by click or tap (`usePinnedRow`; clicking it again, clicking off the rows,
+  or Escape clears it) both show
   which numbers belong to which card. Don't colour it with the accent: keep the accent for
   links, focus rings, and meaningful highlights. Use the shared `--row-stripe` /
   `--row-hover` tokens, derived from the theme colours so they work in dark mode. Rows set
