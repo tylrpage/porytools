@@ -5,7 +5,6 @@ import { printLabel } from '../cards/ids.ts'
 import { useCardDb } from '../cards/useCardDb.ts'
 import HelpHeader from '../components/HelpHeader.tsx'
 import Problems from '../components/Problems.tsx'
-import { usePinnedRow } from '../components/usePinnedRow.ts'
 import { useStickyHead } from '../components/useStickyHead.ts'
 import type { DeckEntry } from '../deck/parse.ts'
 import { SAMPLE_DECKLIST } from '../deck/sample.ts'
@@ -145,7 +144,6 @@ interface Row {
 
 function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGroup[] }) {
   const sections = groupBySection(entries)
-  const pin = usePinnedRow()
   const stickyHead = useStickyHead()
   const rowOdds = (row: Row) => {
     const atLeastOne = [{ group: row.ids, atLeast: 1 }]
@@ -160,7 +158,7 @@ function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGro
   const renderRow = (row: Row) => {
     const o = rowOdds(row)
     return (
-      <tr key={row.key} data-row={row.key} className={pin.rowClass(row.key)}>
+      <tr key={row.key}>
         <td className="count">{row.count}</td>
         <th scope="row" className="sticky-col">
           {row.name}
@@ -189,7 +187,7 @@ function OddsTable({ entries, groups }: { entries: DeckEntry[]; groups: NamedGro
       <h2>At least one copy</h2>
       <p className="muted small">Hover or tap a column name to see what it counts.</p>
       <div className="table-scroll sticky-head" ref={stickyHead}>
-        <table className="odds-table" ref={pin.ref}>
+        <table className="odds-table">
           <thead>
             <tr>
               <th className="count">#</th>

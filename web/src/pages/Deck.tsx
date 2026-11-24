@@ -4,7 +4,6 @@ import type { CardDb } from '../cards/db.ts'
 import type { Card } from '../cards/types.ts'
 import { useCardDb } from '../cards/useCardDb.ts'
 import Problems from '../components/Problems.tsx'
-import { usePinnedRow } from '../components/usePinnedRow.ts'
 import type { DeckEntry } from '../deck/parse.ts'
 import { SAMPLE_DECKLIST } from '../deck/sample.ts'
 import { groupBySection } from '../deck/share.ts'
@@ -91,9 +90,8 @@ function DeckEditor({ db }: { db: CardDb }) {
 }
 
 function DeckList({ entries, db }: { entries: DeckEntry[]; db: CardDb }) {
-  const pin = usePinnedRow()
   return (
-    <div className="deck-sections" ref={pin.ref}>
+    <div className="deck-sections">
       {groupBySection(entries).map(([section, list]) =>
         list.length === 0 ? null : (
           <section key={section}>
@@ -103,11 +101,7 @@ function DeckList({ entries, db }: { entries: DeckEntry[]; db: CardDb }) {
             <table className="deck-table">
               <tbody>
                 {list.map((e, i) => (
-                  <tr
-                    key={i}
-                    data-row={`${section}:${i}`}
-                    className={pin.rowClass(`${section}:${i}`)}
-                  >
+                  <tr key={i}>
                     <td className="count">{e.count}</td>
                     <td>{e.card.name}</td>
                     <td className="muted">{describe(e.card)}</td>

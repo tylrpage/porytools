@@ -193,7 +193,7 @@ button:hover {
 }
 
 /* Data tables (docs/ux-guidelines.md): one separation cue (faint zebra stripes, no row
-   borders) plus one focus state (with a mouse: hover, or a row pinned by click) in the
+   borders) plus one focus state (hover, mouse only) in the
    same neutral tint, only stronger. Each row sets --row-tint and its cells paint it, so the
    opaque sticky column can layer the same tint. Stripes count only data rows, so they
    restart cleanly after each section header row. */
@@ -209,7 +209,7 @@ button:hover {
    just get the stripes. Same specificity as the stripe rule, later in the file, so focus
    wins on striped rows. */
 @media (hover: hover) {
-  :is(.deck-table, .odds-table) tbody tr:not(.section-row):is(:hover, .pinned) {
+  :is(.deck-table, .odds-table) tbody tr:not(.section-row):hover {
     --row-tint: var(--row-hover);
   }
 }
