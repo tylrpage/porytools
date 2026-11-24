@@ -47,13 +47,17 @@ commits can sweep them in. So parallel work that edits files goes in a git workt
   checkpoints there, not on `main`. Run `npm install` in `web/` first (`node_modules`
   isn't shared). If a dev server is needed, use the port Vite reports, since 5173 may be
   taken.
-- **Shared files:** leave `ROADMAP.md`, `CLAUDE.md`, lockfiles and `data/cards.json` to the
-  main-folder session, or update them after merging, since they're the usual conflict spots.
+- **Shared files:** a worktree branch updates `ROADMAP.md` and `CLAUDE.md` itself, in the
+  same commits as the work they describe. Leave lockfiles and `data/cards.json` to the
+  main-folder session, or update them after merging, since they're generated and conflict
+  badly.
 - **Finishing:** tell the owner the branch is ready. Land it on `main` with no merge
   commit, so history stays linear: if `main` moved, rebase the branch onto it first, re-run
   the checks on the rebased branch, then fast-forward `main` from the main folder. If the
-  rebase conflicts, stop and ask the owner. Then update `ROADMAP.md`, and remove the worktree and branch. Never push from a worktree branch,
-  because pushing `main` deploys.
+  rebase conflicts in `ROADMAP.md` or `CLAUDE.md`, resolve it by keeping both sides' edits,
+  unless the two sides' rules contradict each other; on that, or any other conflict, stop
+  and ask the owner. Then remove the worktree and branch. Never
+  push from a worktree branch, because pushing `main` deploys.
 - Hooks always run the main folder's copy of `.claude/hooks/` (`$CLAUDE_PROJECT_DIR`), even
   after EnterWorktree, so hook scripts must find the repo root with git from the session
   `cwd` or the edited file, never from their own location.
