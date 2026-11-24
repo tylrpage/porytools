@@ -255,6 +255,7 @@ function CustomGroups({
   groups: NamedGroup[]
   onChange: (groups: NamedGroup[]) => void
 }) {
+  const label = cardLabeler(entries)
   const update = (i: number, group: NamedGroup) =>
     onChange(groups.map((g, j) => (j === i ? group : g)))
   const add = () => {
@@ -290,7 +291,7 @@ function CustomGroups({
                     update(i, { ...g, ids })
                   }}
                 />{' '}
-                {e.count} {e.card.name}
+                {e.count} {label(e.card)}
               </label>
             ))}
           </div>
