@@ -10,7 +10,7 @@ export default function Home() {
       </p>
       <p>
         <Link to="/odds">Odds</Link>: paste a decklist to see your mulligan chance, the odds of
-        drawing by-turn odds for every card, and how likely cards are to be prized.
+        drawing every card by turn, and how likely cards are to be prized.
       </p>
       <p className="muted">Under construction: setup simulation and the solver come next.</p>
     </>

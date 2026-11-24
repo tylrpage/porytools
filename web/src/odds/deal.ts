@@ -3,7 +3,9 @@
 // The deck is split into piles of identical-for-this-question cards (for example "Dreepy",
 // "other Basics", "everything else"). A deal takes some cards from each pile into each
 // zone. Counting the ways to do that, pile by pile, gives every probability on the odds page
-// exactly, with no sampling.
+// with no sampling. The method is exact; the arithmetic is floating point (full-deal counts
+// reach ~1e23, past the 2^53 where integers stay exact), so results carry a relative
+// rounding error around 1e-15, far below the 0.1% the page shows.
 //
 // Why one joint deal works even though prizes are set aside after the hand and draws come
 // later: a shuffled deck is in uniformly random order, so "7 cards, then 6, then N" are just
@@ -32,8 +34,8 @@ export interface Tracker {
 
 export interface Outcome {
   /** One value per tracker, each at most its cap. */
-  counts: number[]
-  p: number
+  readonly counts: readonly number[]
+  readonly p: number
 }
 
 const pascal: number[][] = []
@@ -58,7 +60,51 @@ export function choose(n: number, k: number): number {
  * prizes / drawn / left in deck, weighted by the number of ways to pick those cards.
  * States stay tiny (zone sizes ≤ 7 and caps ≤ 4), so this is instant for real decks.
  */
-export function deal(piles: readonly Pile[], sizes: DealSizes, trackers: readonly Tracker[]) {
+export function deal(
+  piles: readonly Pile[],
+  sizes: DealSizes,
+  trackers: readonly Tracker[],
+): readonly Outcome[] {
+  const key = cacheKey(canonicalPiles(piles), sizes, trackers)
+  const hit = cache.get(key)
+  if (hit) return hit
+  const outcomes = computeDeal(piles, sizes, trackers)
+  if (cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value!)
+  cache.set(key, outcomes)
+  return outcomes
+}
+
+/**
+ * Results of recent deals. The odds page asks many questions with the same shape (every
+ * 4-copy card's row is the same deal), and re-renders (typing a group name) repeat them all,
+ * so most calls are lookups. Cached results are shared: treat them as read-only.
+ */
+const cache = new Map<string, readonly Outcome[]>()
+const CACHE_LIMIT = 2000
+
+/** For tests. */
+export const dealCache = {
+  clear: () => cache.clear(),
+  get size() {
+    return cache.size
+  },
+}
+
+/** Everything a deal's result depends on. Piles must be canonical (merged and sorted). */
+function cacheKey(piles: readonly Pile[], sizes: DealSizes, trackers: readonly Tracker[]) {
+  return [
+    ZONES.map((z) => sizes[z]).join(','),
+    trackers.map((t) => `${t.group}:${t.zones.join('+')}:${t.cap}`).join(','),
+    piles.map((p) => `${p.count}:${p.groups}`).join(','),
+  ].join('|')
+}
+
+/** `deal` without the cache. Exported for tests. */
+export function computeDeal(
+  piles: readonly Pile[],
+  sizes: DealSizes,
+  trackers: readonly Tracker[],
+): readonly Outcome[] {
   const total = piles.reduce((n, p) => n + p.count, 0)
   const needed = sizes.hand + sizes.prizes + sizes.drawn
   if (total < needed) throw new Error(`The deck has ${total} cards; the deal needs ${needed}`)
@@ -82,7 +128,7 @@ export function deal(piles: readonly Pile[], sizes: DealSizes, trackers: readonl
 
   // The last pile has no choice left: it fills whatever each zone still needs. Putting the
   // biggest pile (usually "every other card") last skips its large loops entirely.
-  const ordered = mergePiles(piles).sort((x, y) => x.count - y.count)
+  const ordered = canonicalPiles(piles)
   let states = new Map<number, number>([[encode(radix.map(() => 0)), 1]])
   ordered.forEach((pile, index) => {
     const last = index === ordered.length - 1
@@ -131,16 +177,24 @@ export function deal(piles: readonly Pile[], sizes: DealSizes, trackers: readonl
   })
 
   // Keep only complete deals and turn ways into probabilities.
-  const outcomes: Outcome[] = []
+  const complete: { counts: number[]; ways: number }[] = []
   let sum = 0
   for (const [key, ways] of states) {
     const [h, p, d, ...counts] = decode(key)
     if (h !== sizes.hand || p !== sizes.prizes || d !== sizes.drawn) continue
-    outcomes.push({ counts, p: ways })
+    complete.push({ counts, ways })
     sum += ways
   }
-  for (const o of outcomes) o.p /= sum
-  return outcomes
+  return complete.map((o) => ({ counts: o.counts, p: o.ways / sum }))
+}
+
+/**
+ * Piles merged and in a fixed order: smallest first (see `computeDeal`), ties by groups.
+ * Decks that differ only in pile order or splitting give the same list, so they share a
+ * cache entry.
+ */
+function canonicalPiles(piles: readonly Pile[]): Pile[] {
+  return mergePiles(piles).sort((x, y) => x.count - y.count || x.groups - y.groups)
 }
 
 /** Piles in the same groups are interchangeable; merging them keeps the state space small. */

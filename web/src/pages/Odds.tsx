@@ -50,8 +50,8 @@ function OddsTool({ db }: { db: CardDb }) {
   const entries = deck.entries
   const total = entries.reduce((n, e) => n + e.count, 0)
   const errors = deck.problems.filter((p) => p.severity === 'error').length
-  const usable =
-    total >= HAND_SIZE + PRIZE_COUNT + MAX_TURN && entries.some((e) => isBasicPokemon(e.card))
+  // A hand and prizes are enough; odds for draws past the deck's end show "—".
+  const usable = total >= HAND_SIZE + PRIZE_COUNT && entries.some((e) => isBasicPokemon(e.card))
 
   // Keep custom groups to cards still in the deck when the list changes.
   const groups = useMemo(() => {
@@ -291,7 +291,9 @@ function CustomGroups({
                     update(i, { ...g, ids })
                   }}
                 />{' '}
-                {e.count} {label(e.card)}
+                {e.count}{' '}
+                {/* The name opens the preview; the checkbox and count toggle the card. */}
+                <CardName card={e.card} label={label(e.card)} />
               </label>
             ))}
           </div>
@@ -316,16 +318,26 @@ function Question({ entries, groups }: { entries: DeckEntry[]; groups: NamedGrou
   const options = cardOptions(entries, groups)
   const fresh = (): ConditionState => ({ key: options[0].key, atLeast: 1 })
   const [parts, setParts] = useState<PartState[]>([[fresh()]])
-  const [turn, setTurn] = useState(2)
+  const [chosenTurn, setTurn] = useState(2)
 
-  // The deck can change under a question: fall back to the first card, clamp counts.
+  // Only turns with a card left to draw (a small test deck runs out); none: the opening hand.
+  const total = entries.reduce((n, e) => n + e.count, 0)
+  const turns = Array.from({ length: MAX_TURN }, (_, t) => t + 1).filter(
+    (t) => HAND_SIZE + PRIZE_COUNT + drawsBy(t) <= total,
+  )
+  const turn = Math.min(chosenTurn, turns.length)
+  const draws = turn === 0 ? 0 : drawsBy(turn)
+  const seen = HAND_SIZE + draws
+  /** "At least" choices for a card or group: no more than its copies or the cards seen. */
+  const maxAtLeast = (ids: ReadonlySet<string>) => Math.min(copiesIn(entries, ids), seen)
+
+  // The deck or turn can change under a question: fall back to the first card, clamp counts.
   const resolved = parts.map((part) =>
     part.map((c) => {
       const option = options.find((o) => o.key === c.key) ?? options[0]
-      return { option, atLeast: Math.min(c.atLeast, copiesIn(entries, option.ids)) }
+      return { option, atLeast: Math.min(c.atLeast, maxAtLeast(option.ids)) }
     }),
   )
-  const draws = drawsBy(turn)
   const { p } = chance(
     entries,
     resolved.map((part) => part.map((c) => ({ group: c.option.ids, atLeast: c.atLeast }))),
@@ -362,7 +374,7 @@ function Question({ entries, groups }: { entries: DeckEntry[]; groups: NamedGrou
                     update(i, j, { key: c.option.key, atLeast: Number(e.target.value) })
                   }
                 >
-                  {Array.from({ length: Math.min(copiesIn(entries, c.option.ids), 7) }, (_, n) => (
+                  {Array.from({ length: maxAtLeast(c.option.ids) }, (_, n) => (
                     <option key={n + 1}>{n + 1}</option>
                   ))}
                 </select>
@@ -391,21 +403,30 @@ function Question({ entries, groups }: { entries: DeckEntry[]; groups: NamedGrou
           + And card or group
         </button>
         <div className="condition">
-          <span>by</span>
-          <select
-            aria-label="By when"
-            value={turn}
-            onChange={(e) => setTurn(Number(e.target.value))}
-          >
-            {Array.from({ length: MAX_TURN }, (_, t) => (
-              <option key={t + 1} value={t + 1}>
-                your turn {t + 1}
-              </option>
-            ))}
-          </select>
-          <span className="muted small">
-            ({HAND_SIZE} + {draws} cards seen)
-          </span>
+          {turns.length === 0 ? (
+            <span>
+              in your opening hand{' '}
+              <span className="muted small">(the deck has no cards left to draw)</span>
+            </span>
+          ) : (
+            <>
+              <span>by</span>
+              <select
+                aria-label="By when"
+                value={turn}
+                onChange={(e) => setTurn(Number(e.target.value))}
+              >
+                {turns.map((t) => (
+                  <option key={t} value={t}>
+                    your turn {t}
+                  </option>
+                ))}
+              </select>
+              <span className="muted small">
+                ({HAND_SIZE} + {draws} cards seen)
+              </span>
+            </>
+          )}
         </div>
         <p className="answer" aria-live="polite">
           {percent(p)}

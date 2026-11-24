@@ -233,6 +233,15 @@ describe('60-card decks', () => {
     expect(mulliganChance(none)).toBe(1)
     expect(chance(none, [{ group: ids('W'), atLeast: 1 }], 0).p).toBeNaN()
   })
+
+  it('a deck with no card left to draw answers NaN for draws, not an error', () => {
+    // 13 cards: exactly a hand and prizes.
+    const tiny = deckOf([4, basic('A')], [9, item('D')])
+    const a = [{ group: ids('A'), atLeast: 1 }]
+    expect(chance(tiny, a, 0).p).toBeGreaterThan(0)
+    expect(chance(tiny, a, drawsBy(1)).p).toBeNaN()
+    expect(prizeDistribution(tiny, ids('A')).reduce((s, p) => s + p, 0)).toBeCloseTo(1, 12)
+  })
 })
 
 describe('Monte Carlo agrees on a 60-card deck', () => {

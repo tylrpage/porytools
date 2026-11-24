@@ -137,7 +137,8 @@ export function prizeDistribution(
 /**
  * The deal's outcomes for these groups and trackers, given the mulligan rule: with
  * `noMulligan`, hands without a Basic are dropped and the rest rescaled to sum to 1.
- * Empty when no hand is valid (a deck with no Basics).
+ * Empty when no hand is valid (a deck with no Basics) or the deck is too small for the deal
+ * (no card left to draw), so callers answer NaN ("—").
  */
 function conditionedDeal(
   deck: readonly DeckEntry[],
@@ -145,7 +146,7 @@ function conditionedDeal(
   trackers: readonly Tracker[],
   draws: number,
   options: OddsOptions,
-): Outcome[] {
+): readonly Outcome[] {
   const noMulligan = options.noMulligan ?? true
   // The deal's last group is Basic Pokémon, for the mulligan rule.
   const all = [...groups, basicIds(deck)]
@@ -161,6 +162,8 @@ function conditionedDeal(
     prizes: options.prizeCount ?? PRIZE_COUNT,
     drawn: draws,
   }
+  const total = deck.reduce((n, e) => n + e.count, 0)
+  if (total < sizes.hand + sizes.prizes + sizes.drawn) return []
   let outcomes = deal(piles, sizes, withBasic)
   if (noMulligan) {
     outcomes = outcomes.filter((o) => o.counts[trackers.length] === 1)

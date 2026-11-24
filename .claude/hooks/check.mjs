@@ -24,9 +24,15 @@ try {
 }
 const web = path.join(root, "web");
 
-const changed = execFileSync("git", ["status", "--porcelain", "--", "web"], { cwd: root, encoding: "utf8" })
-  .split("\n")
-  .some((line) => /\.(ts|tsx|mts|cts)$/.test(line.trim()));
+// -uall lists each file in a new folder (plain status folds it into "?? web/src/odds/"), and
+// -z with quotePath off prints paths raw, so non-ASCII names aren't quoted.
+const changed = execFileSync(
+  "git",
+  ["-c", "core.quotePath=false", "status", "--porcelain", "-uall", "-z", "--", "web"],
+  { cwd: root, encoding: "utf8" },
+)
+  .split("\0")
+  .some((entry) => /\.(ts|tsx|mts|cts)$/.test(entry));
 if (!changed) process.exit(0);
 
 const bin = (name) => path.join(web, "node_modules", ...name);

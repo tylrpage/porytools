@@ -129,6 +129,11 @@ describe('buildCardData', () => {
       ],
     })
     expect(scrydex.data.cards[0]).not.toHaveProperty('image')
+    // An empty or relative URL upstream is skipped, not a build failure.
+    for (const small of ['', 'meg/131.png']) {
+      const bad = build({ me1: [{ ...ball('me1-131'), images: { small } }] })
+      expect(bad.data.cards[0]).not.toHaveProperty('image')
+    }
   })
 
   it('drops the pictured character from Trainer names, so those prints merge', () => {

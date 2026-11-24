@@ -381,8 +381,15 @@ function byPreference(a: Print, b: Print): number {
  * paid API whose terms we haven't cleared, so those links are dropped (TCGdex covers them).
  */
 const IMAGE_HOSTS = ['images.pokemontcg.io', 'assets.tcgdex.net']
-const allowedImage = (url: string | undefined) =>
-  url !== undefined && IMAGE_HOSTS.includes(new URL(url).hostname) ? url : undefined
+const allowedImage = (url: string | undefined) => {
+  if (url === undefined) return undefined
+  try {
+    return IMAGE_HOSTS.includes(new URL(url).hostname) ? url : undefined
+  } catch {
+    // Empty, relative or malformed: skip the image rather than fail the build.
+    return undefined
+  }
+}
 
 function comparePrints(a: Print, b: Print): number {
   if (a.setOrder !== b.setOrder) return a.setOrder - b.setOrder
