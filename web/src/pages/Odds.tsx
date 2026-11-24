@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import type { CardDb } from '../cards/db.ts'
-import { printLabel } from '../cards/ids.ts'
 import { useCardDb } from '../cards/useCardDb.ts'
+import CardSelect from '../components/CardSelect.tsx'
+import { cardOptions } from '../components/cardOptions.ts'
 import HelpHeader from '../components/HelpHeader.tsx'
 import Problems from '../components/Problems.tsx'
 import { useStickyHead } from '../components/useStickyHead.ts'
@@ -294,36 +295,13 @@ function CustomGroups({
   )
 }
 
-interface Option {
-  key: string
-  label: string
-  ids: ReadonlySet<string>
-}
-
-/** Cards, then groups, as choices for a question. Same-name cards get their print label. */
-function groupOptions(entries: DeckEntry[], groups: NamedGroup[]): Option[] {
-  const names = new Map<string, number>()
-  for (const e of entries) names.set(e.card.name, (names.get(e.card.name) ?? 0) + 1)
-  return [
-    ...entries.map((e) => ({
-      key: `card:${e.card.id}`,
-      label:
-        (names.get(e.card.name) ?? 0) > 1
-          ? `${e.card.name} (${printLabel(e.card.id)})`
-          : e.card.name,
-      ids: new Set([e.card.id]),
-    })),
-    ...groups.filter((g) => g.ids.size > 0).map((g) => ({ key: g.key, label: g.name, ids: g.ids })),
-  ]
-}
-
 interface ConditionState {
   key: string
   atLeast: number
 }
 
 function Question({ entries, groups }: { entries: DeckEntry[]; groups: NamedGroup[] }) {
-  const options = groupOptions(entries, groups)
+  const options = cardOptions(entries, groups)
   const [conditions, setConditions] = useState<ConditionState[]>([
     { key: options[0].key, atLeast: 1 },
   ])
@@ -360,30 +338,13 @@ function Question({ entries, groups }: { entries: DeckEntry[]; groups: NamedGrou
                 <option key={n + 1}>{n + 1}</option>
               ))}
             </select>
-            <select
+            <CardSelect
               aria-label="Card or group"
+              entries={entries}
+              groups={groups}
               value={c.option.key}
-              onChange={(e) => update(i, { key: e.target.value, atLeast: 1 })}
-            >
-              <optgroup label="Cards">
-                {options
-                  .filter((o) => o.key.startsWith('card:'))
-                  .map((o) => (
-                    <option key={o.key} value={o.key}>
-                      {o.label}
-                    </option>
-                  ))}
-              </optgroup>
-              <optgroup label="Groups">
-                {options
-                  .filter((o) => !o.key.startsWith('card:'))
-                  .map((o) => (
-                    <option key={o.key} value={o.key}>
-                      {o.label}
-                    </option>
-                  ))}
-              </optgroup>
-            </select>
+              onChange={(key) => update(i, { key, atLeast: 1 })}
+            />
             {conditions.length > 1 && (
               <button
                 type="button"
@@ -427,7 +388,7 @@ function Question({ entries, groups }: { entries: DeckEntry[]; groups: NamedGrou
 }
 
 function PrizeBreakdown({ entries, groups }: { entries: DeckEntry[]; groups: NamedGroup[] }) {
-  const options = groupOptions(entries, groups)
+  const options = cardOptions(entries, groups)
   const [key, setKey] = useState(options[0].key)
   const option = options.find((o) => o.key === key) ?? options[0]
   const dist = prizeDistribution(entries, option.ids)
@@ -437,17 +398,13 @@ function PrizeBreakdown({ entries, groups }: { entries: DeckEntry[]; groups: Nam
       <h2>Prizes</h2>
       <p>
         How many of{' '}
-        <select
+        <CardSelect
           aria-label="Prized card or group"
+          entries={entries}
+          groups={groups}
           value={option.key}
-          onChange={(e) => setKey(e.target.value)}
-        >
-          {options.map((o) => (
-            <option key={o.key} value={o.key}>
-              {o.label}
-            </option>
-          ))}
-        </select>{' '}
+          onChange={setKey}
+        />{' '}
         <span className="muted">({copies} in deck)</span> end up prized
       </p>
       <div className="table-scroll">

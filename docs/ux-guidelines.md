@@ -44,6 +44,11 @@ with the reason.
   Trainers and Energy go by count, then name. Pokémon keep each evolution line together,
   most basic stage first, and lines go by their total copies. Exported decklists and share
   links keep the user's own order.
+- **Every card picker is a `CardSelect`** (`web/src/components/CardSelect.tsx`): any
+  dropdown that picks one of a deck's cards or groups (a "card identifier"). It lists them
+  under Pokémon / Trainer / Energy / Groups separators (native `optgroup`, empty sections
+  left out) and labels same-name cards with their print. Never hand-roll a `<select>` of
+  cards; extend `CardSelect` instead, so all pickers keep the same behaviour and look.
 
 ## General
 - Every new colour must work in both light and dark mode: use or derive from the `:root`
