@@ -186,6 +186,26 @@ describe('buildCardData', () => {
     ])
   })
 
+  it('prefers the lowest number of the newest set (the plain design of an Energy set)', () => {
+    const energy = (id: string, image: string): RawCard => ({
+      id,
+      name: 'Basic Grass Energy',
+      supertype: 'Energy',
+      subtypes: ['Basic'],
+      number: id.split('-')[1],
+      images: { small: `https://images.pokemontcg.io/${image}` },
+    })
+    const { data, preferredPrints } = build({
+      sv1: [energy('sv1-1', 'svi-1.png')],
+      me1: [energy('me1-1', 'meg-1.png'), energy('me1-9', 'meg-9.png')],
+    })
+    expect(data.cards[0]).toMatchObject({
+      id: 'MEG-1',
+      image: 'https://images.pokemontcg.io/meg-1.png',
+    })
+    expect(preferredPrints['MEG-1']).toEqual(['MEG-1', 'MEG-9', 'SVI-1'])
+  })
+
   it('normalizes Pokémon, including zero-cost attacks', () => {
     const { data } = build({ sv5: [dreepy] })
     expect(data.cards[0]).toEqual({

@@ -47,12 +47,16 @@ export interface ImageStats {
 
 /**
  * Give each card the TCGdex scan of its best print that has one (prints in `preferred`
- * order, display print first). Cards without any keep the source image normalize.ts set.
+ * order, display print first). The search stops at the print the source image shows
+ * (`imagePrints`): a TCGdex scan of a worse print doesn't replace it. That keeps e.g.
+ * Basic Energy on a current print, not a yellow-bordered one from 2017, when TCGdex has
+ * no scans of the newest sets. Cards without a scan keep the source image normalize.ts set.
  * `exists` checks a base URL (a HEAD request in the build, cached).
  */
 export async function pickTcgdexImages(
   cards: Card[],
   preferred: Record<string, string[]>,
+  imagePrints: Record<string, string>,
   index: TcgdexIndex,
   exists: (base: string) => Promise<boolean>,
 ): Promise<ImageStats> {
@@ -61,6 +65,7 @@ export async function pickTcgdexImages(
     for (const print of preferred[card.id] ?? [card.id]) {
       const base = tcgdexImageBase(index, print)
       if (base && (await exists(base))) return `${base}/low.webp`
+      if (card.image && print === imagePrints[card.id]) break
     }
     return undefined
   }

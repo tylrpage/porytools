@@ -82,6 +82,8 @@ export interface BuildResult {
   data: CardData
   /** Card ID → its print IDs, best first (display print first), for picking images. */
   preferredPrints: Record<string, string[]>
+  /** Card ID → the print its source image (`card.image`) shows, when it has one. */
+  imagePrints: Record<string, string>
   /** Worth a look, but the output is still usable. */
   warnings: string[]
   /** The build must not ship with these. */
@@ -365,11 +367,13 @@ function rarityRank(rarity: string | undefined): number {
 }
 
 /**
- * Prints best first: regular rarity, then promos, then alternate arts; newest first within
- * each. The first is the display print, the one the site and solver use for the card.
+ * Prints best first: regular rarity, then promos, then alternate arts; newest set first
+ * within each, and the lowest number first within a set (Energy sets print each type twice,
+ * the plain design first: SVE-1, not SVE-9). The first is the display print, the one the
+ * site and solver use for the card.
  */
 function byPreference(a: Print, b: Print): number {
-  return a.rarity - b.rarity || comparePrints(b, a)
+  return a.rarity - b.rarity || b.setOrder - a.setOrder || comparePrints(a, b)
 }
 
 /**
@@ -472,6 +476,7 @@ export function buildCardData(
   // Assemble cards.
   const result: Card[] = []
   const preferredPrints: Record<string, string[]> = {}
+  const imagePrints: Record<string, string> = {}
   const firstPrint = new Map<string, Print>()
   for (const { text, prints } of groups.values()) {
     prints.sort(comparePrints)
@@ -482,8 +487,10 @@ export function buildCardData(
     const id = preferred[0].id
     // The best print's image that the source has (the display print's when it has one), so
     // it isn't a full art when avoidable. build-cards.ts swaps in TCGdex scans afterwards.
-    const image = preferred.find((p) => p.image)?.image
+    const imagePrint = preferred.find((p) => p.image)
+    const image = imagePrint?.image
     preferredPrints[id] = preferred.map((p) => p.id)
+    if (imagePrint) imagePrints[id] = imagePrint.id
     firstPrint.set(id, prints[0])
     result.push({
       ...text,
@@ -532,6 +539,7 @@ export function buildCardData(
       cards: result,
     },
     preferredPrints,
+    imagePrints,
     warnings,
     errors,
   }

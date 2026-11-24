@@ -188,7 +188,7 @@ async function main() {
   if (tcgdex.sets.length > 0) {
     sources.push({ name: 'TCGdex', url: 'https://tcgdex.dev', version: tcgdex.updated })
   }
-  const { data, preferredPrints, warnings, errors } = buildCardData(
+  const { data, preferredPrints, imagePrints, warnings, errors } = buildCardData(
     upstream,
     overrides,
     config,
@@ -209,6 +209,7 @@ async function main() {
   const images = await pickTcgdexImages(
     data.cards,
     preferredPrints,
+    imagePrints,
     await fetchTcgdexIndex(config.setCodeAliases),
     scans.exists,
   )

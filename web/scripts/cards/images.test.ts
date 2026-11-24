@@ -49,6 +49,7 @@ describe('TCGdex images', () => {
     const stats = await pickTcgdexImages(
       cards,
       { 'TWM-126': ['TWM-126', 'TWM-17'], 'PR-SV-12': ['PR-SV-12'], 'ABC-1': ['ABC-1'] },
+      {},
       index,
       async (base) => !missing.has(base) && !base.includes('/svp/'),
     )
@@ -58,5 +59,25 @@ describe('TCGdex images', () => {
       undefined,
     ])
     expect(stats).toEqual({ tcgdex: 1, fallback: 1, none: 1 })
+  })
+
+  it("doesn't swap the source image for a scan of a worse print", async () => {
+    // Like Basic Energy: TCGdex has no scan of the newest print (ABC-1), whose source image
+    // is ABC-1's; an old print (TWM-17) has one but mustn't win. A better print's scan does.
+    const cards = [
+      card('ABC-1', 'https://images.pokemontcg.io/abc/1.png'),
+      card('TWM-126', 'https://images.pokemontcg.io/old.png'),
+    ]
+    await pickTcgdexImages(
+      cards,
+      { 'ABC-1': ['ABC-1', 'TWM-17'], 'TWM-126': ['TWM-126', 'TWM-17'] },
+      { 'ABC-1': 'ABC-1', 'TWM-126': 'TWM-17' },
+      index,
+      async () => true,
+    )
+    expect(cards.map((c) => c.image)).toEqual([
+      'https://images.pokemontcg.io/abc/1.png',
+      'https://assets.tcgdex.net/en/sv/sv06/126/low.webp',
+    ])
   })
 })
