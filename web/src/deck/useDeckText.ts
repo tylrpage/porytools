@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import type { CardDb } from '../cards/db.ts'
+import { sortEntries } from './order.ts'
 import { type DeckEntry, type Problem, parseDecklist } from './parse.ts'
 import { decodeDeck, encodeDeck, formatDecklist } from './share.ts'
 import { validateDeck } from './validate.ts'
@@ -8,6 +9,7 @@ import { validateDeck } from './validate.ts'
 export interface DeckText {
   text: string
   setText: (text: string) => void
+  /** One per card, in display order (see `sortEntries`). */
   entries: DeckEntry[]
   /** Parse problems, then deck-rule problems. */
   problems: Problem[]
@@ -31,7 +33,7 @@ export function useDeckText(db: CardDb): DeckText {
     const result = parseDecklist(text, db)
     const checked = result.entries.length > 0 ? validateDeck(result.entries, db) : []
     return {
-      entries: result.entries,
+      entries: sortEntries(result.entries, db),
       problems: [...result.problems, ...checked],
       shareParam: result.lines.length > 0 ? encodeDeck(result.lines) : '',
     }

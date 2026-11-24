@@ -37,6 +37,14 @@ with the reason.
   `title` attribute: it doesn't work on touch or keyboard. Keep must-read information
   visible, not in a tooltip.
 
+## Card lists
+- **One card order everywhere** (`sortEntries` in `web/src/deck/order.ts`, applied in
+  `useDeckText`): tables, dropdowns, group checkboxes and the deck view all list cards the
+  same way, so a card is always where you expect it. Pokémon, then Trainers, then Energy.
+  Trainers and Energy go by count, then name. Pokémon keep each evolution line together,
+  most basic stage first, and lines go by their total copies. Exported decklists and share
+  links keep the user's own order.
+
 ## General
 - Every new colour must work in both light and dark mode: use or derive from the `:root`
   tokens, never hardcode a one-theme colour.

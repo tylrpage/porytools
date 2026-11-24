@@ -64,6 +64,8 @@ so every number below is exact.
   Energy) and custom groups; "and" questions over several
 - ☑ **[owner]** First review: no opening-hand column (it only matters for mulligans),
   turns start at 1, both players draw on turn 1, no draw-Supporter group
+- ☑ Card order everywhere (`deck/order.ts`): sections, then count and name; Pokémon in
+  evolution lines, basic first, lines by total copies
 - ☐ **[owner]** Design guidelines and requested changes (coming)
 - ☐ Polish + launch: check on a real phone, share links for custom groups and questions,
   analytics on
