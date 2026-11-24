@@ -32,6 +32,8 @@ Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
   to push, since pushing deploys the site.
 - Run `/code-review` only after the owner accepts a milestone, not per change.
 - Prefer a few project-specific skills/hooks over large generic config bundles.
+- Before UI work, read `docs/ux-guidelines.md`. When the owner gives UX feedback that points
+  at a pattern, fix it everywhere it applies and add a rule there.
 
 ## Constraints
 - **Standard format only.** Legality comes from a configurable list of regulation marks,

@@ -6,6 +6,9 @@
   --border: #e7e5e4;
   --accent: #c2410c;
   --accent-text: #9a3412;
+  /* Derived from the theme colours, so they work in light and dark mode unchanged. */
+  --row-stripe: color-mix(in srgb, var(--text) 4%, transparent);
+  --row-hover: color-mix(in srgb, var(--accent) 14%, transparent);
 
   color-scheme: light dark;
   font-family:
@@ -182,6 +185,16 @@ button:hover {
 .deck-sections h2 {
   font-size: 1.1rem;
   margin: 1.25rem 0 0.25rem;
+}
+
+/* Data tables: zebra stripes + hover highlight (docs/ux-guidelines.md). Stripes count only
+   data rows, so they restart cleanly after each section header row. */
+:is(.deck-table, .odds-table) tbody tr:not(.section-row):nth-child(even of :not(.section-row)) {
+  background: var(--row-stripe);
+}
+
+:is(.deck-table, .odds-table) tbody tr:not(.section-row):hover {
+  background: var(--row-hover);
 }
 
 .deck-table {
