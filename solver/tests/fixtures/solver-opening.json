@@ -1,0 +1,21 @@
+{
+  "format": "porytools-game",
+  "version": 1,
+  "viewpoint": "all",
+  "source": "solver",
+  "players": [{"decklist": [["PRE-21", 1], ["DRI-10", 1], ["TEF-24", 1], ["TWM-15", 3], ["ASC-39", 1], ["PRE-20", 2], ["PRE-10", 3], ["PRE-9", 4], ["TEF-23", 1], ["TWM-14", 3], ["PRE-102", 2], ["SVI-196", 2], ["ASC-181", 2], ["ASC-184", 4], ["30C-126", 4], ["PBL-77", 2], ["WHT-80", 2], ["MEG-130", 1], ["ASC-192", 4], ["PRE-113", 1], ["TWM-163", 1], ["ASC-212", 1], ["DRI-168", 1], ["SFA-61", 2], ["PRE-108", 4], ["PAL-172", 2], ["MEE-1", 4], ["POR-86", 1]]}, {}],
+  "start": {"players": [{"deck": {"count": 60, "contents": [["PRE-21", 1], ["DRI-10", 1], ["TEF-24", 1], ["TWM-15", 3], ["ASC-39", 1], ["PRE-20", 2], ["PRE-10", 3], ["PRE-9", 4], ["TEF-23", 1], ["TWM-14", 3], ["PRE-102", 2], ["SVI-196", 2], ["ASC-181", 2], ["ASC-184", 4], ["30C-126", 4], ["PBL-77", 2], ["WHT-80", 2], ["MEG-130", 1], ["ASC-192", 4], ["PRE-113", 1], ["TWM-163", 1], ["ASC-212", 1], ["DRI-168", 1], ["SFA-61", 2], ["PRE-108", 4], ["PAL-172", 2], ["MEE-1", 4], ["POR-86", 1]]}}, {"deck": {"count": 0}}]},
+  "nodes": [
+    {"action": {"type": "chooseFirst", "player": 0, "first": 0, "changes": []}},
+    {"action": {"type": "openingHand", "player": 0, "changes": [{"type": "draw", "player": 0, "cards": [{"id": 1, "card": "PRE-9"}, {"id": 2, "card": "30C-126"}, {"id": 3, "card": "MEE-1"}, {"id": 4, "card": "MEE-1"}, {"id": 5, "card": "PRE-10"}, {"id": 6, "card": "ASC-192"}, {"id": 7, "card": "PRE-108"}]}]}},
+    {"action": {"type": "placeStart", "player": 0, "changes": [{"type": "move", "cards": [1], "to": {"zone": "active"}}]}},
+    {"action": {"type": "setPrizes", "player": 0, "changes": [{"type": "fromDeck", "player": 0, "cards": [{"id": 8, "card": "TWM-14"}, {"id": 9, "card": "PRE-9"}, {"id": 10, "card": "ASC-184"}, {"id": 11, "card": "MEE-1"}, {"id": 12, "card": "TWM-15"}, {"id": 13, "card": "SFA-61"}], "to": {"zone": "prizes"}}]}},
+    {"action": {"type": "revealStart", "changes": [{"type": "reveal", "cards": {"1": "PRE-9"}, "to": "all"}]}},
+    {"action": {"type": "startTurn", "player": 0, "changes": [{"type": "draw", "player": 0, "cards": [{"id": 14, "card": "TWM-14"}]}]}},
+    {"action": {"type": "playCard", "player": 0, "card": 2, "changes": [{"type": "move", "cards": [2], "to": {"zone": "pending"}}, {"type": "fromDeck", "player": 0, "cards": [{"id": 15, "card": "PRE-9"}], "to": {"zone": "hand"}, "seen": "all"}, {"type": "shuffle", "player": 0}, {"type": "move", "cards": [2], "to": {"zone": "discard"}}]}},
+    {"action": {"type": "playBasic", "player": 0, "card": 15, "changes": [{"type": "move", "cards": [15], "to": {"zone": "bench"}}]}},
+    {"action": {"type": "attachEnergy", "player": 0, "card": 3, "onto": 15, "changes": [{"type": "move", "cards": [3], "to": {"zone": "attached", "on": 15}}]}},
+    {"action": {"type": "endTurn", "player": 0, "changes": []}},
+    {"parent": 5, "label": "Lillie's Determination", "action": {"type": "playCard", "player": 0, "card": 6, "changes": [{"type": "move", "cards": [6], "to": {"zone": "pending"}}, {"type": "toDeck", "cards": [2, 3, 4, 5, 7, 14], "pos": "pool"}, {"type": "shuffle", "player": 0}, {"type": "draw", "player": 0, "cards": [{"id": 16, "card": "PRE-10"}, {"id": 17, "card": "TWM-15"}, {"id": 18, "card": "SVI-196"}, {"id": 19, "card": "PBL-77"}, {"id": 20, "card": "PAL-172"}, {"id": 21, "card": "ASC-184"}, {"id": 22, "card": "MEE-1"}, {"id": 23, "card": "PRE-20"}]}, {"type": "move", "cards": [6], "to": {"zone": "discard"}}]}}
+  ]
+}

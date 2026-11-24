@@ -1,0 +1,23 @@
+[package]
+name = "porytools-solver"
+version = "0.1.0"
+edition = "2024"
+description = "porytools solver core: game records, fold, projection (native + WASM)"
+license = "MIT"
+repository = "https://github.com/tylrpage/porytools"
+publish = false
+
+[dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+ts-rs = { version = "12.0.1", features = ["no-serde-warnings"] }
+wasm-bindgen = "0.2.130"
+
+[lib]
+# cdylib: the .wasm for the site; rlib: a normal Rust library for tests and native tools.
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+# Smaller .wasm for the site: link-time optimization across crates, one codegen unit.
+lto = true
+codegen-units = 1

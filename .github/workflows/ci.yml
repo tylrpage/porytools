@@ -19,8 +19,33 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      # Builds the solver crate to WASM (installs wasm-pack; the runner has Rust).
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: solver
+      - run: npm run wasm
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
       - run: npm test
       - run: npm run build
+
+  solver:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: solver
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: solver
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      # Also writes the TS types (ts-rs) into web/src/game/types.
+      - run: cargo test
+      - name: Generated TS types are committed and current
+        run: |
+          git add -N ../web/src/game/types
+          git diff --exit-code -- ../web/src/game/types

@@ -24,10 +24,14 @@ Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
 ## Dev workflow (Claude Code)
 - Keep this file and `ROADMAP.md` current as work lands.
 - Project hooks in `.claude/settings.json` (scripts in `.claude/hooks/`): Prettier formats
-  each edited file under `web/` or `data/*.json`; at stop, if TypeScript in `web/` has
-  uncommitted changes, `tsc -b` + `oxlint --deny-warnings` (incl. `jsx-a11y` accessibility rules) run and
-  failures block the stop to be fixed.
-  Rust equivalents get added with the solver crate (M4).
+  each edited file under `web/` or `data/*.json`, rustfmt each `.rs` under `solver/`; at
+  stop, if TypeScript in `web/` has uncommitted changes, `tsc -b` + `oxlint --deny-warnings`
+  (incl. `jsx-a11y` accessibility rules) run, and if Rust in `solver/` does,
+  `cargo clippy --all-targets -D warnings`. Failures block the stop to be fixed.
+- Rust lives in `~/.cargo/bin`, which a shell may not have on its PATH yet: prefix
+  `export PATH="$HOME/.cargo/bin:$PATH"` in Bash. After changing Rust types, run
+  `cargo test` (regenerates `web/src/game/types/`, which is committed; CI checks it's
+  current) and `npm run wasm` (rebuilds `web/src/game/wasm/`, not committed).
 - Claude commits to `main` at coherent checkpoints (checks passing); the owner decides when
   to push, since pushing deploys the site.
 - Run `/code-review` only after the owner accepts a milestone, not per change.
@@ -44,8 +48,8 @@ commits can sweep them in. So parallel work that edits files goes in a git workt
   owner's prompt overrides this either way. Read-only work (questions, planning) never needs
   a worktree.
 - **In a worktree:** work on its own branch (git won't check out `main` twice) and commit
-  checkpoints there, not on `main`. Run `npm install` in `web/` first (`node_modules`
-  isn't shared). If a dev server is needed, use the port Vite reports, since 5173 may be
+  checkpoints there, not on `main`. Run `npm install` and `npm run wasm` in `web/` first
+  (`node_modules` and the WASM build aren't shared). If a dev server is needed, use the port Vite reports, since 5173 may be
   taken.
 - **Shared files:** a worktree branch updates `ROADMAP.md` and `CLAUDE.md` itself, in the
   same commits as the work they describe. Leave lockfiles and `data/cards.json` to the
@@ -83,7 +87,10 @@ commits can sweep them in. So parallel work that edits files goes in a git workt
 - **Frontend:** TypeScript + Vite + React. Probability calculators (hypergeometric) in pure
   TS.
 - **Solver core:** Rust → WASM (`wasm-bindgen` / `wasm-pack`), run in Web Workers (one per
-  core). The same crate builds natively for `cargo test` and batch precompute.
+  core). The same crate (`solver/`) builds natively for `cargo test` and batch precompute.
+  `web/src/game/solver.ts` loads it; `npm run build` builds it first
+  (`web/scripts/wasm/build-wasm.ts`, which installs Rust + wasm-pack on CI and Cloudflare
+  Pages, whose image lacks them).
 - **Testing:** CI runs tests over real tournament decklists (`data/test-decklists.json`,
   fetched from Limitless); later the native solver runs over them as a regression and
   performance suite. Nothing from them is published on the site.

@@ -1,8 +1,9 @@
-# Game record format (v1, draft)
+# Game record format (v1)
 
 One format for solver output, replays, imported games, and mid-game analysis. Decided with
-the owner in the M3 design session (2026-11-24); this file is the spec. Rust types (serde)
-are the source of truth once they exist, and TS types are generated from them.
+the owner in the M3 design session (2026-11-24); this file is the spec. The Rust types in
+`solver/src/game/` (serde) are the source of truth, and the TS types in
+`web/src/game/types/` are generated from them (ts-rs).
 
 ## Decisions
 
@@ -34,7 +35,7 @@ are the source of truth once they exist, and TS types are generated from them.
     { "decklist": [["TEF-23", 1], ["PRE-9", 4]] },   // optional; usually only the viewer's
     {}
   ],
-  "start": { /* State; see below. A new game needs only the decks. */ },
+  "start": { /* the two decks; see State below */ },
   "nodes": [ /* Node, in order */ ]
 }
 ```
@@ -144,8 +145,8 @@ stack** (canonically the bottom card, which survives evolution).
 
 ## State
 
-The fold's output. A record's `start` is a new game, written as a `State` with only the
-decks filled in (other fields take their defaults: empty, zero, `null`):
+The fold's output. A record's `start` is a new game, so it holds only the two decks (Rust
+`Start`); everything else starts empty, zero, or `null`:
 
 ```jsonc
 "start": {
@@ -197,16 +198,28 @@ The fold applies these rulebook facts itself, because no card changes them:
 - A card moved onto a `stack` (evolving), or a Pokémon moving to the Bench, clears its
   Special Conditions ("When a Pokémon evolves or moves to the Bench, it recovers from all
   Special Conditions").
-- When a Pokémon's last stack card leaves play, the Pokémon is removed and its counters
-  are cleared.
-- `startTurn` advances `turn`.
+- Moving a card of a Pokémon's stack to the Active Spot or the Bench moves the whole
+  Pokémon (promote, Switch effects); `switch` swaps the Active with a Benched Pokémon.
+- When a Pokémon has no cards left (stack and attachments), it is removed with its counters.
+  A KO can move the stack and the attachments in separate changes.
+- Pokémon put into play during setup, before `revealStart`, are face down; `revealStart`
+  flips them after its `reveal` changes.
+- `startTurn` advances `turn`; `mulligan` counts toward `mulligans`; `chooseFirst` sets
+  `firstPlayer`; `endGame` sets `result`.
+- `toDeck` with `top` lists cards top first (the first listed ends on top); `bottom` lists
+  them top to bottom. Drawing takes known top cards first: the drawn `NewCard` must name
+  that instance.
+- Healing more than a Pokémon's damage heals it to 0. Damage must be a multiple of 10.
 
 Effects of attacks also end when a Pokémon evolves or goes to the Bench. Those effects
 aren't stored, so this is handled in the queries (below), not by the fold.
 
-The fold checks only **consistency**: every instance is in exactly one place, IDs are unused
-when created, counts never go negative, and cards in public zones have known identities
-(face-down setup Pokémon and prizes excepted). It does not check legality.
+The fold checks only **consistency**, after each action: every instance is in exactly one
+place, IDs are unused when created, counts never go negative, known deck contents match
+the pool and hold every card taken from it, a revealed card keeps its identity, and cards
+in public zones (in play, discard, Lost Zone, Stadium) have known identities (face-down
+setup Pokémon excepted). It does not check legality. A card leaving a known pool unseen
+(e.g. face-down prizes) makes the pool's contents unknown again.
 
 ### Queries
 
@@ -231,8 +244,11 @@ Queries are the only way rules code and card effects read derived facts. A query
 `project(record, player)` returns that player's view: identities they didn't see become
 unknown (opponent's draws, prizes, `fromDeck` without `seen: all`), `lookAtDeck` by the
 opponent is dropped, and `deck.contents` follows the same rule. Each change type has a
-default for who sees it: `draw` → owner, `fromDeck` → `seen`, `reveal` → `to`, moves into
-public zones → everyone.
+default for who sees it: `draw` → owner, `fromDeck` → `seen` (into prizes: no one, they're
+face down; into a public zone: everyone), `reveal` → `to`. When a card the player hadn't
+seen enters a public zone or their own hand or pending zone (a prize taken, the opponent's
+played card), projection adds a `reveal` (to `all` or to the player), so the projected
+record still folds. The opponent's decklist is dropped.
 
 ## State and query registry
 
@@ -396,13 +412,16 @@ the history.
     { "action": { "type": "endTurn", "player": 1, "flag": "inferred", "changes": [] } }
 ```
 
-**Ambiguity, your turn 3.** "Boss's Orders: Dreepy was switched with Budew" with two Dreepy
-benched, one holding Fire Energy. The log doesn't say which, so the importer guesses, and
+**Ambiguity, their turn 2.** "Evolved Dreepy to Drakloak on the Bench" with two Dreepy that
+can evolve, one holding Fire Energy. The log doesn't say which, so the importer guesses, and
 a later constraint can settle it: on their turn 3 the Drakloak promoted after the retreat
-must hold Fire + Psychic to pay for Phantom Dive.
+must hold Fire + Psychic to pay for Phantom Dive, so it was the Fire one. (Your Boss's
+Orders on your turn 3 then pulls up one of two identical Dreepy: not a guess.)
 
 ```jsonc
-      { "type": "switch", "player": 1, "bench": 116, "flag": "guessed", "alternatives": [115] }
+    { "action": { "type": "evolve", "player": 1, "card": 124, "onto": 115,
+      "flag": "guessed", "alternatives": [116], "changes": [
+      { "type": "move", "cards": [124], "to": { "zone": "stack", "on": 115 } } ] } }
 ```
 
 **Their turn 3: Phantom Dive and a Live text bug.** The log says "put 6 damage counters on
@@ -440,10 +459,15 @@ hand the viewer can't see, so the prize cards stay unknown.
 - Attack names → positions on the card.
 - Live has text bugs (wrong owner on Phantom Dive counters): trust what the card can do.
 
-## Open for implementation
+## Implementation
 
-- Rust layout: a `solver/` crate with `game::{record, state, change, fold, project}`; serde
-  with internally tagged enums (`"type"`) and camelCase; TS types generated with `ts-rs`;
-  WASM exports `fold(record, node)`, `check(record)`, `project(record, player)`.
-- Round-trip tests: every example here parses, folds without consistency errors, and
-  re-serializes to the same JSON. The full Live game is a fixture.
+- `solver/src/game/`: `record` (record, nodes, tree paths), `action` (actions, changes,
+  locations), `state`, `fold` (fold, `check` over all branches), `project`. serde with
+  internally tagged enums (`"type"`, `"zone"`) and camelCase; TS types generated with
+  ts-rs into `web/src/game/types/` on `cargo test`.
+- WASM exports `fold(record, node?)` (default: the end of the main line), `check(record)`,
+  `project(record, player)`, JSON in and out; `web/src/game/solver.ts` wraps them.
+- Fixtures (`solver/tests/fixtures/`): examples 1–2 as one record (`solver-opening.json`)
+  and the owner's full Live game (`ptcgl-game.json`). Tests check they round-trip to the
+  same JSON, fold with no consistency errors, project, and end in the logged position.
+- Queries (`queries.rs`) come with the rules engine (M4), which is their first user.

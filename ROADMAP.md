@@ -91,17 +91,22 @@ The foundation for the solver output, replays, and mid-game analysis.
   and a real PTCG Live game hand-converted (tests the format against Live's partial info).
   Includes the **state and query registry** (every stored fact and query, and which cards
   need it). **[owner]** reviewed
-- ☐ Rust crate builds native + WASM (`wasm-pack`) and runs in the site; CI runs
-  `cargo test` (moved up from M4: the fold lives in Rust)
-- ☐ Rust types (serde) + TS types generated with `ts-rs`; fold, consistency check,
-  projection; round-trip tests over the spec's examples and the full Live game fixture
+- ☑ Rust crate (`solver/`) builds native + WASM (`wasm-pack`, `npm run wasm`; `npm run
+  build` builds it first, installing Rust on CI / Cloudflare Pages); the site loads it
+  (`web/src/game/solver.ts`, tested from Vitest). CI: rustfmt, clippy, `cargo test`, TS
+  types current. Claude Code hooks: rustfmt on edit, clippy at stop (moved up from M4)
+- ☑ Rust types (serde) + TS types generated with `ts-rs`; fold, consistency check (all
+  branches), projection; tests: round trip, fold and projection over the spec's examples and
+  the owner's full Live game (`solver/tests/fixtures/`), plus bookkeeping and error cases
+- ☐ **[owner]** First deploy with the WASM build: watch the Cloudflare build log (it now
+  installs Rust, ~1–2 min longer); the release `.wasm` is 440 KB (140 KB gzipped), worth
+  trimming before the viewer ships
 - ☐ Minimal replay viewer in the site: load a record, scrub events, see the board as text.
   Hand-written sample records only at this point.
 
 ## M4 — Rust solver core (goldfish simulator) ☐
 - ☐ Solver runs in a Web Worker (the crate itself is set up in M3)
-- ☐ Extend the Claude Code hooks (`.claude/hooks/`) to Rust: `rustfmt` on edit, `cargo
-  check`/`clippy` at stop when `solver/` changed
+- ☐ Queries (`queries.rs`, the spec's registry) over state + history, with card data
 - ☐ Rules engine: setup (Basics, mulligans, opponent's extra draws ignored for solo),
   prizes, turn structure, going first restrictions, supporter/energy/retreat
   once-per-turn, evolution timing
