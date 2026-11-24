@@ -68,8 +68,8 @@ so every number below is exact.
 - ☑ Prizes: P(n copies prized), P(all copies prized), per-card table
 - ☑ By-turn-N: P(seen card/group by your turn N) (prized cards can't be drawn; both
   players draw on their first turn, so turn order doesn't change these odds)
-- ☑ Card groups: built-ins (Basic Pokémon, Pokémon, Supporters, Items, Energy, Basic
-  Energy) and custom groups; "and" questions over several
+- ☑ Card groups: built-ins (Basic Pokémon, Pokémon, Supporters, Items, Tools,
+  Stadiums, Energy, Basic Energy) and custom groups; "and" questions over several
 - ☑ **[owner]** First review: no opening-hand column (it only matters for mulligans),
   turns start at 1, both players draw on turn 1, no draw-Supporter group
 - ☑ Card order everywhere (`deck/order.ts`): sections, then count and name; Pokémon in

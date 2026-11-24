@@ -24,6 +24,16 @@ export const BUILT_IN_GROUPS: readonly BuiltIn[] = [
     test: (c) => c.kind === 'trainer' && c.trainer === 'Supporter',
   },
   { key: 'item', name: 'Items', test: (c) => c.kind === 'trainer' && c.trainer === 'Item' },
+  {
+    key: 'tool',
+    name: 'Tools',
+    test: (c) => c.kind === 'trainer' && c.trainer === 'Pokémon Tool',
+  },
+  {
+    key: 'stadium',
+    name: 'Stadiums',
+    test: (c) => c.kind === 'trainer' && c.trainer === 'Stadium',
+  },
   { key: 'energy', name: 'Energy', test: (c) => c.kind === 'energy' },
   { key: 'basic-energy', name: 'Basic Energy', test: (c) => c.kind === 'energy' && c.basic },
 ]
