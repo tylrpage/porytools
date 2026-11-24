@@ -9,7 +9,8 @@ with the reason.
   Stripe data rows only; section header rows don't count and the stripes restart after them.
 - **Hover highlights the whole row.** It shows which numbers belong to which card. Use the
   shared `--row-stripe` / `--row-hover` tokens. They're derived from the theme colours, so they
-  work in dark mode too.
+  work in dark mode too. Apply hover to the cells (`tr:hover > *`), not the `tr`, or the
+  higher-specificity stripe rule hides it on striped rows.
 - Numbers right-aligned with `tabular-nums` so digits line up; the label column is left-aligned.
 - Wide tables scroll inside `.table-scroll` instead of widening the page on mobile.
 

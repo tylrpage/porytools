@@ -193,7 +193,9 @@ button:hover {
   background: var(--row-stripe);
 }
 
-:is(.deck-table, .odds-table) tbody tr:not(.section-row):hover {
+/* Hover paints the cells, not the row: cells draw on top of the row background, so the
+   highlight shows on striped rows too, whatever the selector specificity. */
+:is(.deck-table, .odds-table) tbody tr:not(.section-row):hover > * {
   background: var(--row-hover);
 }
 
