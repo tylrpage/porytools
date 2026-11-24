@@ -54,6 +54,9 @@ commits can sweep them in. So parallel work that edits files goes in a git workt
   the checks on the rebased branch, then fast-forward `main` from the main folder. If the
   rebase conflicts, stop and ask the owner. Then update `ROADMAP.md`, and remove the worktree and branch. Never push from a worktree branch,
   because pushing `main` deploys.
+- Hooks always run the main folder's copy of `.claude/hooks/` (`$CLAUDE_PROJECT_DIR`), even
+  after EnterWorktree, so hook scripts must find the repo root with git from the session
+  `cwd` or the edited file, never from their own location.
 - Keep branches short-lived and split parallel tasks by area (e.g. Rust solver vs `web/`)
   so they rarely touch the same files.
 - Before UI work, read `docs/ux-guidelines.md`. When the owner gives UX feedback that points

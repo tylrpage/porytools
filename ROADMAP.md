@@ -40,6 +40,8 @@ Repo, toolchain, and a live (empty) site.
   60-card / 4-copy (by name) / 1-ACE-SPEC / Basic Pokémon / legality validation
 - ☑ Deck view page (`/deck`: grouped Pokémon / Trainer / Energy, counts, problems)
 - ☑ Decklist ↔ URL encoding (`/deck?d=2.4_TWM-128…`, versioned, prints as listed)
+- ☑ Decklist remembered in localStorage, shared by `/deck` and `/odds` (survives
+  navigating away and reloads; opening a share link replaces it)
 - ☑ **[owner]** Review: overrides approved, PTCG Live import worked
 - ☑ Real-decklist test set (`npm run fetch-decklists` → `data/test-decklists.json`):
   decklists only, from top Limitless archetypes, for internal tests; all 50 parse and
