@@ -8,6 +8,12 @@
       {
         "allowConstantExport": true
       }
+    ],
+    "jsx-a11y/control-has-associated-label": [
+      "warn",
+      {
+        "depth": 4
+      }
     ]
   }
 }

@@ -14,6 +14,12 @@ with the reason.
 - Numbers right-aligned with `tabular-nums` so digits line up; the label column is left-aligned.
 - Wide tables scroll inside `.table-scroll` instead of widening the page on mobile.
 
+- **Column explanations go in header tooltips** (`HelpHeader`), not in a paragraph above
+  the table. Each one opens on hover, keyboard focus, or tap, closes on Escape, and is read
+  by screen readers. Dotted underline marks headers that have one. Never use only the native
+  `title` attribute: it doesn't work on touch or keyboard. Keep must-read information
+  visible, not in a tooltip.
+
 ## General
 - Every new colour must work in both light and dark mode: use or derive from the `:root`
   tokens, never hardcode a one-theme colour.

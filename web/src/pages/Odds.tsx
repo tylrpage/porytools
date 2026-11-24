@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import type { CardDb } from '../cards/db.ts'
 import { printLabel } from '../cards/ids.ts'
 import { useCardDb } from '../cards/useCardDb.ts'
+import HelpHeader from '../components/HelpHeader.tsx'
 import Problems from '../components/Problems.tsx'
 import type { DeckEntry } from '../deck/parse.ts'
 import { groupBySection } from '../deck/share.ts'
@@ -225,22 +226,27 @@ function OddsTable({
   return (
     <section>
       <h2>At least one copy</h2>
-      <p className="muted small">
-        Chance of having seen at least one copy by your turn, after its draw. Prized: at least one /
-        every copy in your prizes. Only Basic: the card is the only Basic Pokémon in your opening
-        hand (one or more copies), so it must start Active.
-      </p>
+      <p className="muted small">Hover or tap a column name to see what it counts.</p>
       <div className="table-scroll">
         <table className="odds-table">
           <thead>
             <tr>
               <th className="count">#</th>
               <th>Card</th>
-              <th>Turn 1</th>
-              <th>Turn 2</th>
-              <th>Prized</th>
-              <th>All prized</th>
-              <th>Only Basic</th>
+              <HelpHeader
+                label="Turn 1"
+                help="At least one copy seen by your first turn, counting that turn's draw."
+              />
+              <HelpHeader
+                label="Turn 2"
+                help="At least one copy seen by your second turn, counting that turn's draw."
+              />
+              <HelpHeader label="Prized" help="At least one copy is in your prizes." />
+              <HelpHeader label="All prized" help="Every copy is in your prizes." />
+              <HelpHeader
+                label="Only Basic"
+                help="The only Basic Pokémon in your opening hand (one or more copies), so it must start Active."
+              />
             </tr>
           </thead>
           {sections.map(([section, list]) =>
@@ -499,24 +505,26 @@ function PrizeBreakdown({
         </select>{' '}
         <span className="muted">({copies} in deck)</span> end up prized
       </p>
-      <table className="odds-table prize-table">
-        <thead>
-          <tr>
-            <th>Prized</th>
-            {dist.map((_, n) => (
-              <th key={n}>{n}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">Chance</th>
-            {dist.map((p, n) => (
-              <td key={n}>{percent(p)}</td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
+      <div className="table-scroll">
+        <table className="odds-table prize-table">
+          <thead>
+            <tr>
+              <th>Prized</th>
+              {dist.map((_, n) => (
+                <th key={n}>{n}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Chance</th>
+              {dist.map((p, n) => (
+                <td key={n}>{percent(p)}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   )
 }
