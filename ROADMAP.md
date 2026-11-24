@@ -50,13 +50,13 @@ Repo, toolchain, and a live (empty) site.
   TCGdex scans (~15 KB webp) of the best print that has one (display print first), checked
   to exist at build time (`scripts/cards/images.ts`); pokemontcg.io as fallback; Scrydex
   links dropped (terms not cleared). 2156 TCGdex, 1 fallback, 19 MEP promos without a scan
-- ◐ Hover / tap a card name to see the card (`CardName`) in the odds and deck tables;
-  **[owner]** tuning size, delay and placement
+- ☑ Hover / tap a card name to see the card (`CardName`) in the odds and deck tables;
+  faint dotted underline marks it
 - ☐ Refresh `cards.json` automatically (scheduled GitHub Action opening a PR) when sets
   release
 - ☐ Later: "before / after rotation" toggle on the site (the data already supports it)
 
-## M2 — Probability calculators (first public release) ◐
+## M2 — Probability calculators (first public release) ☑
 All exact math in pure TS (`web/src/odds/`), unit-tested against brute force on small decks,
 closed-form hypergeometric values, and Monte Carlo; timed over the 50 real test decklists.
 One engine deals hand, prizes and draws together (exact counting over "piles" of cards),
@@ -75,9 +75,10 @@ so every number below is exact.
   turns start at 1, both players draw on turn 1, no draw-Supporter group
 - ☑ Card order everywhere (`deck/order.ts`): sections, then count and name; Pokémon in
   evolution lines, basic first, lines by total copies
-- ☐ **[owner]** Design guidelines and requested changes (coming)
-- ☐ Polish + launch: check on a real phone, share links for custom groups and questions,
-  analytics on
+- ☑ **[owner]** Design guidelines (`docs/ux-guidelines.md`) and requested changes;
+  polish checked on a real phone (iPhone Safari); owner accepted the milestone
+- ☐ Later: share links that carry custom groups and questions (the decklist link already
+  works)
 
 ## M3 — Game state & event-log format (design with owner) ☐
 The foundation for the solver output, replays, and mid-game analysis.
