@@ -265,7 +265,7 @@ function CustomGroups({
     <section>
       <h2>Custom groups</h2>
       <p className="muted small">
-        Count several cards as one, e.g. every Pokémon that can start, or all your search Items.
+        Count several cards as one, e.g. all your pokemon search items.
       </p>
       {groups.map((g, i) => (
         <fieldset key={g.key} className="group-editor">
