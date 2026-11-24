@@ -4,10 +4,6 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-const root = path.resolve(import.meta.dirname, "..", "..");
-const web = path.join(root, "web");
-const prettier = path.join(web, "node_modules", "prettier", "bin", "prettier.cjs");
-
 let file;
 try {
   const input = JSON.parse(readFileSync(0, "utf8"));
@@ -15,9 +11,23 @@ try {
 } catch {
   process.exit(0);
 }
-if (!file || !existsSync(prettier)) process.exit(0);
-
+if (!file) process.exit(0);
 const abs = path.resolve(file);
+
+// The repo root is the checkout holding the edited file (a worktree or the main folder), not
+// the one this script lives in, so worktree edits are formatted with that worktree's Prettier.
+let root;
+try {
+  root = execFileSync("git", ["rev-parse", "--show-toplevel"], {
+    cwd: path.dirname(abs),
+    encoding: "utf8",
+  }).trim();
+} catch {
+  process.exit(0);
+}
+const web = path.join(root, "web");
+const prettier = path.join(web, "node_modules", "prettier", "bin", "prettier.cjs");
+if (!existsSync(prettier)) process.exit(0);
 const rel = path.relative(root, abs);
 // Only files Prettier owns in this repo: web/** and data/*.json (see `npm run format`).
 const owned =

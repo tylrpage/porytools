@@ -5,13 +5,24 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-const root = path.resolve(import.meta.dirname, "..", "..");
-const web = path.join(root, "web");
-
 let input = {};
 try {
   input = JSON.parse(readFileSync(0, "utf8"));
 } catch {}
+
+// Check the checkout the session works in (its cwd), not the one this script lives in: a
+// session that switched into a worktree still runs the main folder's copy of this hook, and
+// checking the main folder would report another session's half-done files.
+let root;
+try {
+  root = execFileSync("git", ["rev-parse", "--show-toplevel"], {
+    cwd: input.cwd ?? process.cwd(),
+    encoding: "utf8",
+  }).trim();
+} catch {
+  root = path.resolve(import.meta.dirname, "..", "..");
+}
+const web = path.join(root, "web");
 
 const changed = execFileSync("git", ["status", "--porcelain", "--", "web"], { cwd: root, encoding: "utf8" })
   .split("\n")
