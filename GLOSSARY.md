@@ -31,8 +31,14 @@ The path through a record that follows each node's first child.
 A path that leaves the main line at a node: a different decision, or a different draw.
 _Avoid_: variation, fork
 
+**Log**:
+A record's actions as a list, one entry per action, grouped by turn, as the replay viewer
+shows them beside or over the board.
+_Avoid_: event log, battle log, history
+
 **Viewpoint**:
 Whose knowledge a record holds: one player's, or `all` (everything, as solver output has).
+The replay viewer's Viewpoint menu shows an all-seeing record as one player saw it.
 _Avoid_: perspective, POV
 
 **Projection**:

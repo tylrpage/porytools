@@ -64,6 +64,18 @@ with the reason.
   names), draw it fainter and go full strength on the one being pointed at, so lists don't
   look busy.
 
+## Board views (replay, later the recorder)
+- **Our own look, never a copy of PTCG Live.** Borrow layout ideas (the official playmat
+  layout, a log beside the board), not their art, mat, badge shapes or colours, and never
+  the official card back or Energy symbols: draw our own. It keeps the fan site clearly
+  separate from the product.
+- **No hover previews where cards are already pictures.** Tap or click opens a close-up;
+  hover previews stay on card *names* (log, tables).
+- **No state shown by colour or rotation alone.** Rotated cards (Asleep, Paralyzed,
+  Confused), player colours and highlights always come with a text label or aria label.
+- **One automatic layout per window shape, no toggle.** Wide landscape gets the log as a
+  column; everything else gets it behind a button.
+
 ## General
 - **Buttons are the same height as dropdowns and text boxes** (same vertical padding and
   border, and `line-height: normal`, which Firefox forces on dropdowns and text boxes), so a

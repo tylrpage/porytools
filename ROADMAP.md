@@ -111,7 +111,21 @@ The foundation for the solver output, replays, and mid-game analysis.
   ("Your turn 2"), with buttons to switch to a branch and back; all-seeing records can be
   shown as either player sees them (projection); `check` errors listed. The page is a lazy
   route, so only it downloads the WASM
-- ☐ **[owner]** Review the replay viewer (layout on desktop and phone, event wording)
+- ☑ Visual replay viewer designed with the owner (2026-11-24): `docs/replay-viewer.md`
+- ☐ Visual replay viewer (replaces the text board), per `docs/replay-viewer.md`:
+  - ☐ Full-width page, toolbar (samples, paste dialog, Viewpoint, `check` count),
+    automatic horizontal (log column) / vertical (Log sheet) views
+  - ☐ Board: playmat layout in our own look, card images and CSS backs, Pokémon with
+    damage, Energy, Tools, evolution edge and conditions; Bench up to 8; two-wide Stadium;
+    prize fan; piles and hands (scrolling hand) with card lists; close-up on tap;
+    highlight + caption for the current action; aria labels
+  - ☐ Log: chronological by turn, thumbnails, player colours, changes behind a chevron,
+    `guessed` / `inferred` tags, branches
+  - ☐ Timeline: turn segments, KO and branch markers, draggable position; turn jumps and
+    keyboard keys
+  - ☐ Check on real phones whether the small card images are sharp enough for close-ups
+    (else add a large image URL per card)
+- ☐ **[owner]** Review the visual replay viewer (desktop and phone, both views, wording)
 
 ## M4 — Rust solver core (goldfish simulator) ☐
 - ☐ Solver runs in a Web Worker (the crate itself is set up in M3)
@@ -167,7 +181,7 @@ every query has its history. No standalone "current board + extra facts" states.
   `docs/game-format.md`): sentences → actions, rule-implied events, names → prints by
   decklist / attacks / HP, copies by constraints else `guessed`, known effects added as
   `inferred`
-- ☐ Replay viewer with scrubbing; "analyze from here" opens M8 on any moment
+- ☐ "Analyze from here" in the replay viewer (built in M3) opens M8 on any moment
 - ☐ Shareable replay links
 
 ---
