@@ -98,11 +98,15 @@ The foundation for the solver output, replays, and mid-game analysis.
 - ☑ Rust types (serde) + TS types generated with `ts-rs`; fold, consistency check (all
   branches), projection; tests: round trip, fold and projection over the spec's examples and
   the owner's full Live game (`solver/tests/fixtures/`), plus bookkeeping and error cases
-- ☐ **[owner]** First deploy with the WASM build: watch the Cloudflare build log (it now
-  installs Rust, ~1–2 min longer); the release `.wasm` is 440 KB (140 KB gzipped), worth
-  trimming before the viewer ships
+- ☑ **[owner]** First deploy with the WASM build (Cloudflare installs Rust fine)
+- ☑ WASM size checked: 440 KB, 140 KB gzipped, ~110 KB brotli (what Cloudflare sends).
+  About a third is serde buffering for the record format's flattened, `type`-tagged JSON.
+  `opt-level = "s"`/`"z"` saves only ~15–20% compressed and would slow the future solver,
+  `wasm-opt -Oz` and parsing via `serde_json::Value` save nothing, so it stays as is.
+  Revisit in M4 if needed (e.g. a separate small build for the viewer)
 - ☐ Minimal replay viewer in the site: load a record, scrub events, see the board as text.
-  Hand-written sample records only at this point.
+  Hand-written sample records only at this point. Load the WASM only on the viewer page
+  (dynamic `import()`), so other pages never download it.
 
 ## M4 — Rust solver core (goldfish simulator) ☐
 - ☐ Solver runs in a Web Worker (the crate itself is set up in M3)
