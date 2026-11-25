@@ -95,3 +95,21 @@ when fixed. Delete items once done and the owner has checked them; delete the fi
 9. ☑ **Horizontal threshold at the owner's window.** Their current window should just be
    vertical. Measured 1237×1248 with Chrome's "debugging this browser" banner, which takes
    about 40px of height, so ~1237×1285 (ratio ~0.96) without it. Threshold set to 0.97.
+
+## Round 3 (2026-11-25)
+
+1. ☐ **Card back "p" placed by its loop:** the bowl of the "p" sits at the card's centre
+   (not the glyph box). Back a little darker overall.
+2. ☐ **More room for the Stadium.** Vertical view: Stadium closer to the horizontal centre,
+   with clear room from the prizes. Horizontal view: prizes move a little further from the
+   middle line (vertically) so the Stadium card can be bigger.
+3. ☐ **Hand count centred on the hand's outer side, apart from the name.** The name stays
+   in its corner ("You" bottom-left, "Opponent" top-left); "Hand N" is centred below the
+   hand from that player's view (bottom player: under the hand; top player: above the
+   strip).
+4. ☐ **No seen-card strip for "Reveal starting Pokémon".** The starters are on the board
+   already, and the strip overlapped the Active Spots at every game start. Other uses of
+   the seen strip stay for now (to be revisited).
+
+Noted, not a task: the deck isn't highlighted when cards are drawn or set out as prizes;
+fine for now (owner, 2026-11-25).
