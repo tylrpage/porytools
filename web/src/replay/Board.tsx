@@ -152,7 +152,12 @@ function Prizes({ player }: { player: number }) {
       }
     >
       <span className="fan" style={vars({ '--n': prizes.length })}>
-        {prizes.length === 0 && <span className="slot" />}
+        {/* Empty: the slot is placed exactly as the first prize would be. */}
+        {prizes.length === 0 && (
+          <span className="fan-card" style={vars({ '--i': 0 })}>
+            <span className="slot" />
+          </span>
+        )}
         {prizes.map((id, i) => (
           <span
             key={id}

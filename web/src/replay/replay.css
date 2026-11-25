@@ -529,6 +529,16 @@
   top: auto;
   bottom: calc(var(--i) * (100% - var(--ch)) / max(var(--n) - 1, 1));
 }
+/* The count sits on the zone's top-right corner from each player's view: by the middle line
+   for both (the top player's view is mirrored top to bottom). Inside the zone, not hanging
+   over its edge like other counts, so it stays clear of the Stadium's highlight. */
+.prizes .count {
+  bottom: 0;
+}
+.area.bottom .prizes .count {
+  top: 0;
+  bottom: auto;
+}
 
 /* Deck, discard, Lost Zone */
 
@@ -642,7 +652,7 @@
 @media (max-width: 40rem) {
   .caption-line {
     padding-inline: 0.6rem;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
   }
 }
 

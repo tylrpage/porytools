@@ -77,6 +77,9 @@ with the reason.
   column; everything else gets it behind a button.
 - **Labels inside card slots are centred both ways** ("No Stadium"), so an empty slot reads
   as one tidy box. Centre on `.slot` itself, not per label, so new slot labels get it too.
+- **An empty zone's slot sits exactly where its first card would.** Render the slot in the
+  card's own place (same wrapper and position rule), never placed by a separate rule, so the
+  two can't drift apart (the top player's empty prize slot once sat at the wrong end).
 - **The board never changes size or shifts while scrubbing.** Each player's area keeps one
   size all game: rows have fixed heights in card sizes, with room reserved for the hand,
   highlight outlines and scroll bars, and labels that come and go (conditions) overlay a
