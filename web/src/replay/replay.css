@@ -498,7 +498,9 @@
   line-height: 1.3;
 }
 
-/* Prizes: a stack straight down the left side with a count. */
+/* Prizes: a stack straight down the left side with a count. Cards keep the spacing of a full
+   stack of six (more only if a record has more), so the stack grows as prizes are set out and
+   shrinks from its far end as they're taken, instead of spreading to fill the column. */
 
 .prizes {
   grid-area: prizes;
@@ -522,12 +524,12 @@
   position: absolute;
   left: 0;
   width: var(--cw);
-  top: calc(var(--i) * (100% - var(--ch)) / max(var(--n) - 1, 1));
+  top: calc(var(--i) * (100% - var(--ch)) / max(var(--n) - 1, 5));
 }
 /* Mirrored for the top player: the stack starts by the middle line and grows upwards. */
 .area.top .fan-card {
   top: auto;
-  bottom: calc(var(--i) * (100% - var(--ch)) / max(var(--n) - 1, 1));
+  bottom: calc(var(--i) * (100% - var(--ch)) / max(var(--n) - 1, 5));
 }
 /* The count sits on the zone's top-right corner from each player's view: by the middle line
    for both (the top player's view is mirrored top to bottom). Inside the zone, not hanging

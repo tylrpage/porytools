@@ -105,6 +105,8 @@ with none of Live's art, mat, badge shapes or colours.
 - A vertical line with a handle marks the current position; drag it, or click the bar to
   jump. It is a real slider for keyboard and screen readers ("Action 12 of 40, Your turn
   2").
+- **Prizes:** a stack at a full stack's spacing, starting by the middle line, so it shrinks
+  from its far end as prizes are taken. The count is on the corner by the middle line.
 - **Buttons:** previous turn, previous action, next action, next turn, as SVG
   icons (`replay/Icons.tsx`: bar and two arrows for turns, one arrow for actions). No
   first/last buttons (owner feedback); Home / End still jump there.

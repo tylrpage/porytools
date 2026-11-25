@@ -166,3 +166,8 @@ fine for now (owner, 2026-11-25).
    follow-up), so the two mirror each other: by the middle line for both. It sits inside the
    zone rather than hanging over the edge like other counts, keeping 8px from the full-size
    Stadium in the horizontal view (4px would leave the Stadium's highlight touching it).
+8. ☐ **Prize stack shrinks as prizes are taken** (desktop and iOS). The stack spread its
+   cards over the whole column whatever the count, so it kept its length. Now the cards keep
+   a full stack's spacing (six), so the stack grows as prizes are set out and loses its far
+   end ("top" card) as they're taken. Measured at 440×956: opponent on 4 prizes, stack
+   282–391px (was 254–391 with 6), still starting by the middle line.
