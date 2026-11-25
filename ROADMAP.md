@@ -104,9 +104,14 @@ The foundation for the solver output, replays, and mid-game analysis.
   `opt-level = "s"`/`"z"` saves only ~15–20% compressed and would slow the future solver,
   `wasm-opt -Oz` and parsing via `serde_json::Value` save nothing, so it stays as is.
   Revisit in M4 if needed (e.g. a separate small build for the viewer)
-- ☐ Minimal replay viewer in the site: load a record, scrub events, see the board as text.
-  Hand-written sample records only at this point. Load the WASM only on the viewer page
-  (dynamic `import()`), so other pages never download it.
+- ☑ Minimal replay viewer (`/replay`, `web/src/pages/Replay.tsx`): sample records (the Rust
+  fixtures) or a pasted one; first / back / next / last buttons and a slider; the current
+  event with its changes; the board as text for both players (Active and Bench with HP,
+  conditions and attachments, hand, deck, prizes, discard, Stadium); an event list by turn
+  ("Your turn 2"), with buttons to switch to a branch and back; all-seeing records can be
+  shown as either player sees them (projection); `check` errors listed. The page is a lazy
+  route, so only it downloads the WASM
+- ☐ **[owner]** Review the replay viewer (layout on desktop and phone, event wording)
 
 ## M4 — Rust solver core (goldfish simulator) ☐
 - ☐ Solver runs in a Web Worker (the crate itself is set up in M3)

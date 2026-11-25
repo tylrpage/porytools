@@ -14,6 +14,7 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/deck">Deck</NavLink>
           <NavLink to="/odds">Odds</NavLink>
+          <NavLink to="/replay">Replay</NavLink>
           <NavLink to="/about">About</NavLink>
         </nav>
       </header>
