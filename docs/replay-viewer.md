@@ -86,14 +86,16 @@ with none of Live's art, mat, badge shapes or colours.
 - A vertical line with a handle marks the current position; drag it, or click the bar to
   jump. It is a real slider for keyboard and screen readers ("Action 12 of 40, Your turn
   2").
-- **Buttons:** first, previous, next, last, previous turn, next turn.
+- **Buttons:** previous turn (⏮), previous action, next action, next turn (⏭). No
+  first/last buttons (owner feedback); Home / End still jump there.
 - **Keys:** ← / → step, Shift+← / → jump turns, Home / End.
 
 ## Built (choices made while building)
 - Player colours go by seat, not by player number: the bottom player is blue, the top one
   red (both modes), so "you" keep one colour when Viewpoint flips the board.
 - The Stadium sits at the left of the middle line, with the caption centred beside it.
-- The horizontal view needs a landscape window at least 60rem wide.
+- The horizontal view needs a window at least 60rem wide and no taller than 5:4 (so a
+  half-screen window on a desktop monitor gets it).
 - The timeline's pointer handling is on the bar; a hidden range input under it is the
   slider for keyboard and screen readers.
 - Damage badges are neutral (text colour), so they never read as a player's colour.

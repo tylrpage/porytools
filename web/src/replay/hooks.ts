@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 
-/** Wide landscape windows get the log as a column; everything else gets it behind a button. */
-const WIDE = '(min-aspect-ratio: 1/1) and (min-width: 60rem)'
+/** Wide windows (landscape, or a half-screen window a little taller than wide) get the log as
+ *  a column; everything else gets it behind a button. */
+const WIDE = '(min-aspect-ratio: 4/5) and (min-width: 60rem)'
 
 export function useWide(): boolean {
   const query = () => typeof window.matchMedia === 'function' && window.matchMedia(WIDE).matches

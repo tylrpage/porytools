@@ -349,19 +349,11 @@ function Viewer({
             <div className="replay-buttons">
               <button
                 type="button"
-                onClick={() => setPos(0)}
-                disabled={at === 0}
-                aria-label="First action"
-              >
-                ⏮
-              </button>
-              <button
-                type="button"
                 onClick={prevTurn}
                 disabled={at === 0}
                 aria-label="Previous turn"
               >
-                ⏪
+                ⏮
               </button>
               <button
                 type="button"
@@ -384,14 +376,6 @@ function Viewer({
                 onClick={nextTurn}
                 disabled={at === last}
                 aria-label="Next turn"
-              >
-                ⏩
-              </button>
-              <button
-                type="button"
-                onClick={() => setPos(last)}
-                disabled={at === last}
-                aria-label="Last action"
               >
                 ⏭
               </button>
