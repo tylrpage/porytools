@@ -34,6 +34,11 @@ Milestones and status live in `ROADMAP.md`. Keep it updated as work lands.
   to push, since pushing deploys the site.
 - Run `/code-review` only after the owner accepts a milestone, not per change.
 - Prefer a few project-specific skills/hooks over large generic config bundles.
+- **Shared language:** `GLOSSARY.md` at the root defines porytools' terms. Use them in code,
+  docs and UI text, and avoid the words listed under _Avoid_. Design work is settled with
+  `/grill-me` (interview in rounds) or `/grill-with-docs` (the same, plus updating the
+  glossary and `docs/adr/` as terms and decisions settle). Both are in `.claude/skills/`,
+  adapted from mattpocock/skills (MIT).
 
 ## Parallel sessions
 The owner sometimes runs several Claude Code sessions at once. Sessions sharing one folder
