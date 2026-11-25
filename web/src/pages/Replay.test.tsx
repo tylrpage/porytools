@@ -28,38 +28,80 @@ const renderReplay = () =>
     </MemoryRouter>,
   )
 
+const caption = () => document.querySelector('.caption')!.textContent
+
 describe('replay page', () => {
   it('steps through the sample game', async () => {
     renderReplay()
-    const slider = await screen.findByRole('slider', { name: 'Event' })
-    expect(screen.getByText(/Start of the game/)).toBeInTheDocument()
+    const slider = await screen.findByRole('slider', { name: 'Action' })
+    expect(caption()).toMatch(/Start of the game/)
     const last = Number(slider.getAttribute('max'))
     expect(last).toBeGreaterThan(40)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next event' }))
-    expect(document.querySelector('.replay-event')!.textContent).toMatch(/coin flip/)
+    fireEvent.click(screen.getByRole('button', { name: 'Next action' }))
+    expect(caption()).toMatch(/coin flip/)
+    expect(slider).toHaveAttribute('aria-valuetext', expect.stringMatching(/^Action 1 of/))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Last event' }))
-    expect(document.querySelector('.replay-event')!.textContent).toMatch(/Game over: Opponent wins/)
+    // Keys step and jump turns.
+    fireEvent.keyDown(window, { key: 'End' })
+    expect(caption()).toMatch(/Game over: Opponent wins/)
     const you = screen.getByRole('region', { name: 'You' })
-    expect(within(you).getByText('Prizes (6)')).toBeInTheDocument()
+    expect(within(you).getByRole('button', { name: 'Prizes: 6 cards' })).toBeInTheDocument()
+    fireEvent.keyDown(window, { key: 'Home' })
+    fireEvent.keyDown(window, { key: 'ArrowRight', shiftKey: true })
+    expect(slider).toHaveAttribute('aria-valuetext', expect.stringMatching(/Your turn 1$/))
+  })
+
+  it('draws the board: Pokémon with damage and Energy, piles, a revealed card', async () => {
+    renderReplay()
+    const slider = await screen.findByRole('slider', { name: 'Action' })
+    // Just after the opponent's first attack (action 20 of the Live sample).
+    fireEvent.change(slider, { target: { value: '20' } })
+    expect(caption()).toMatch(/attacks/)
+    const you = screen.getByRole('region', { name: 'You' })
+    expect(
+      within(you).getByRole('button', { name: /^Active: .*10 damage.*changed by this action/ }),
+    ).toBeInTheDocument()
+    const opponent = screen.getByRole('region', { name: 'Opponent' })
+    expect(
+      within(opponent).getByRole('button', { name: 'Bench: ASC 158, MEE 2' }),
+    ).toBeInTheDocument()
+    expect(
+      within(opponent).getByRole('button', { name: /^Discard pile: 2 cards/ }),
+    ).toBeInTheDocument()
+
+    // Tapping a pile lists its cards; a card there opens a close-up on top.
+    fireEvent.click(within(opponent).getByRole('button', { name: /^Discard pile/ }))
+    const list = screen.getByRole('dialog', { name: 'Discard pile (2)' })
+    fireEvent.click(within(list).getByRole('button', { name: 'ASC 184' }))
+    expect(screen.getByRole('dialog', { name: 'ASC 184' })).toBeInTheDocument()
+    fireEvent.click(within(list).getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    // A revealed card that stays put shows in the caption's strip, highlighted.
+    fireEvent.change(slider, { target: { value: '9' } })
+    const seen = screen.getByRole('list', { name: 'Looked at or revealed' })
+    expect(within(seen).getByRole('button', { name: 'ASC 16' })).toHaveClass('hit')
   })
 
   it('switches to a branch and shows an all-seeing record as one player', async () => {
     renderReplay()
     fireEvent.click(await screen.findByRole('button', { name: /solver turn 1/ }))
-    const log = screen.getByRole('region', { name: 'Events' })
+    fireEvent.click(screen.getByRole('button', { name: 'Log' }))
+    const log = screen.getByRole('dialog', { name: 'Log' })
     fireEvent.click(within(log).getByRole('button', { name: /Lillie/ }))
     expect(within(log).getByRole('button', { name: /Back to the main line/ })).toBeInTheDocument()
 
     expect(screen.getByRole('region', { name: 'Player 1' })).toBeInTheDocument()
-    fireEvent.change(screen.getByLabelText('Seen by'), { target: { value: '0' } })
+    fireEvent.change(screen.getByLabelText('Viewpoint'), { target: { value: '1' } })
     expect(screen.getByRole('region', { name: 'You' })).toBeInTheDocument()
   })
 
-  it('reports a record that is not JSON', async () => {
+  it('reports a pasted record that is not JSON', async () => {
     renderReplay()
-    fireEvent.change(await screen.findByLabelText('Game record'), { target: { value: '{' } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Paste a record' }))
+    fireEvent.change(screen.getByLabelText('Game record'), { target: { value: '{' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Load' }))
     expect(screen.getByText(/Not a game record/)).toBeInTheDocument()
   })
 })

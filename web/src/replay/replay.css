@@ -1,0 +1,1037 @@
+/* The replay viewer (pages/Replay.tsx, replay/). Our own plain look from the theme tokens:
+   no PTCG Live art, mat, badges, card back or Energy symbols. See docs/ux-guidelines.md. */
+
+/* Card width on the board, fitted to the board's box. Registered so it resolves to a length
+   on .board, not again inside each card (cards are size containers themselves). */
+@property --cw {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 60px;
+}
+
+.replay-page {
+  /* Bottom ("a") and top ("b") player colours, for names, turn tints and markers. */
+  --pa: #2563eb;
+  --pb: #dc2626;
+  --pa-text: #1d4ed8;
+  --pb-text: #b91c1c;
+  --mat: color-mix(in srgb, var(--text) 3%, var(--bg));
+  --back-a: color-mix(in srgb, var(--text) 30%, var(--surface));
+  --back-b: color-mix(in srgb, var(--text) 42%, var(--surface));
+  --hit: var(--accent);
+  --e-grass: #3f9f4a;
+  --e-fire: #e2552d;
+  --e-water: #2f8fd8;
+  --e-lightning: #e9c21b;
+  --e-psychic: #9b59b6;
+  --e-fighting: #b8692e;
+  --e-darkness: #3b3f4a;
+  --e-metal: #9aa3ad;
+  --e-dragon: #b49a2c;
+  --e-colorless: #d6d3d1;
+
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .replay-page {
+    --pa: #60a5fa;
+    --pb: #f87171;
+    --pa-text: #93c5fd;
+    --pb-text: #fca5a5;
+  }
+}
+
+.player {
+  font-weight: 600;
+}
+.player-a {
+  color: var(--pa-text);
+}
+.player-b {
+  color: var(--pb-text);
+}
+
+/* Toolbar */
+
+.replay-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.replay-problems {
+  position: relative;
+}
+
+.replay-problems summary {
+  cursor: pointer;
+}
+
+.replay-problems ul {
+  position: absolute;
+  z-index: 15;
+  width: max-content;
+  max-width: min(30rem, 85vw);
+  margin: 0.25rem 0 0;
+  padding: 0.5rem 0.75rem 0.5rem 1.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}
+
+/* Body: the stage (board + timeline), and the log beside it in the horizontal view. */
+
+.replay-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.replay-stage {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.replay-log {
+  width: min(24rem, 32vw);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+/* Board */
+
+.board-box {
+  flex: 1;
+  min-height: 14rem;
+  container-type: size;
+}
+
+.board {
+  --cw: min(calc(100cqw / 8.4), calc(100cqh * 0.1));
+  --ch: calc(var(--cw) * 337 / 245);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(var(--cw) * 0.08);
+  padding: calc(var(--cw) * 0.08);
+  background: var(--mat);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.board button {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  font-size: inherit;
+  color: inherit;
+}
+
+.area {
+  padding: calc(var(--cw) * 0.06) calc(var(--cw) * 0.1);
+  border-radius: 0.5rem;
+}
+.area.side-a {
+  background: color-mix(in srgb, var(--pa) 5%, transparent);
+}
+.area.side-b {
+  background: color-mix(in srgb, var(--pb) 5%, transparent);
+}
+
+.mat {
+  display: grid;
+  grid-template-columns: calc(var(--cw) * 1.25) minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    'prizes active deck'
+    'prizes bench discard';
+  column-gap: calc(var(--cw) * 0.3);
+  row-gap: calc(var(--cw) * 0.15);
+}
+
+/* The top player is mirrored: Active nearest the middle, prizes on the right. */
+.area.top .mat {
+  grid-template-columns: auto minmax(0, 1fr) calc(var(--cw) * 1.25);
+  grid-template-areas:
+    'discard bench prizes'
+    'deck active prizes';
+}
+
+.active-row,
+.bench-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: var(--ch);
+}
+.active-row {
+  grid-area: active;
+}
+.bench-row {
+  grid-area: bench;
+  gap: calc(var(--cw) * 0.12);
+}
+
+.deck-cell {
+  grid-area: deck;
+  align-self: start;
+}
+.discard-cell {
+  grid-area: discard;
+  align-self: start;
+  display: flex;
+  gap: calc(var(--cw) * 0.12);
+}
+
+/* Cards */
+
+.rc {
+  display: block;
+  width: 100%;
+  aspect-ratio: 245 / 337;
+  border-radius: 5% / 3.6%;
+  object-fit: cover;
+  background: var(--row-stripe);
+}
+
+.rc-back {
+  position: relative;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--back-a) 0 0.25rem,
+    var(--back-b) 0.25rem 0.5rem
+  );
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.rc-back::after {
+  content: '';
+  position: absolute;
+  inset: 22% 18%;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.rc-blank {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4%;
+  padding: 8%;
+  overflow: hidden;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  container-type: inline-size;
+}
+
+.rc-name {
+  font-size: 15cqi;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.rc-info {
+  font-size: 11cqi;
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.slot {
+  display: block;
+  width: var(--cw);
+  aspect-ratio: 245 / 337;
+  border: 2px dashed var(--border);
+  border-radius: 5% / 3.6%;
+}
+
+/* Highlight for what the current action moved or changed (also in the aria labels). */
+.hit,
+.mon.hit .mon-card {
+  outline: 3px solid var(--hit);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.mon.hit {
+  outline: none;
+}
+
+.count {
+  position: absolute;
+  right: -0.25rem;
+  bottom: -0.25rem;
+  z-index: 2;
+  min-width: 1.7em;
+  padding: 0 0.35em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: max(0.65rem, calc(var(--cw) * 0.17));
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pokémon in play */
+
+.mon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 1 var(--cw);
+  width: var(--cw);
+  min-width: 0;
+}
+
+.mon-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  isolation: isolate;
+  container-type: inline-size;
+}
+
+.mon[data-rot='asleep'] .mon-card {
+  transform: rotate(-90deg) scale(0.8);
+}
+.mon[data-rot='paralyzed'] .mon-card {
+  transform: rotate(90deg) scale(0.8);
+}
+.mon[data-rot='confused'] .mon-card {
+  transform: rotate(180deg);
+}
+
+/* Earlier stages, just a card border's width showing underneath. */
+.mon-under {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1px solid var(--muted);
+  border-radius: 5% / 3.6%;
+  background: var(--surface);
+  transform: translateY(calc(var(--i) * 3px));
+}
+
+/* A Tool peeking out from behind the Pokémon. */
+.mon-tool {
+  position: absolute;
+  z-index: -2;
+  top: calc(-15% - var(--i) * 6%);
+  left: 18%;
+  width: 100%;
+}
+
+.mon-damage {
+  position: absolute;
+  top: 4%;
+  right: -6%;
+  z-index: 1;
+  min-width: 36cqi;
+  padding: 2cqi 5cqi;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: max(0.6rem, 21cqi);
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.mon-energy {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 5%;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  gap: 3cqi;
+}
+
+.energy {
+  width: max(0.5rem, 18cqi);
+  height: max(0.5rem, 18cqi);
+  border-radius: 50%;
+  background: var(--e, var(--e-colorless));
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.energy[data-type='Grass'] {
+  --e: var(--e-grass);
+}
+.energy[data-type='Fire'] {
+  --e: var(--e-fire);
+}
+.energy[data-type='Water'] {
+  --e: var(--e-water);
+}
+.energy[data-type='Lightning'] {
+  --e: var(--e-lightning);
+}
+.energy[data-type='Psychic'] {
+  --e: var(--e-psychic);
+}
+.energy[data-type='Fighting'] {
+  --e: var(--e-fighting);
+}
+.energy[data-type='Darkness'] {
+  --e: var(--e-darkness);
+}
+.energy[data-type='Metal'] {
+  --e: var(--e-metal);
+}
+.energy[data-type='Dragon'] {
+  --e: var(--e-dragon);
+}
+/* Special Energy: a ringed neutral circle (its name is in the label and the close-up). */
+.energy[data-type='special'] {
+  background: var(--surface);
+  box-shadow:
+    inset 0 0 0 max(2px, 4cqi) var(--text),
+    0 0 0 2px var(--surface);
+}
+.energy[data-type='unknown'] {
+  background: var(--back-b);
+}
+
+.mon-conds {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.cond {
+  padding: 0 0.3em;
+  border: 1px solid var(--border);
+  border-radius: 0.3em;
+  background: var(--surface);
+  font-size: max(0.6rem, calc(var(--cw) * 0.15));
+  line-height: 1.3;
+}
+
+/* Prizes: a fan down the side with a count. */
+
+.prizes {
+  grid-area: prizes;
+  position: relative;
+  align-self: stretch;
+  min-height: calc(var(--ch) * 1.5);
+}
+
+.fan {
+  position: absolute;
+  inset: 0;
+}
+
+.fan-card {
+  position: absolute;
+  width: var(--cw);
+  left: calc(var(--i) * var(--cw) * 0.04);
+  top: calc(var(--i) * (100% - var(--ch)) / max(var(--n) - 1, 1));
+}
+
+/* Deck, discard, Lost Zone */
+
+.pile {
+  position: relative;
+  display: block;
+  width: var(--cw);
+}
+
+.pile > .rc {
+  position: relative;
+  z-index: 1;
+}
+
+.pile-under {
+  position: absolute;
+  inset: 0;
+  transform: translateY(14%);
+}
+
+.pile-name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1.4em;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Middle line: Stadium and the caption of the current action. */
+
+.mid {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--cw) * 0.3);
+  min-height: calc(var(--ch) * 0.75);
+  padding: 2px calc(var(--cw) * 0.1);
+}
+
+.stadium {
+  flex: none;
+  display: flex;
+  gap: 4px;
+  width: calc(var(--cw) * 1.5 + 4px);
+}
+
+.stadium-card {
+  width: calc(var(--cw) * 0.75);
+}
+
+.stadium-empty {
+  width: calc(var(--cw) * 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: max(0.6rem, calc(var(--cw) * 0.14));
+  color: var(--muted);
+}
+
+/* Keeps the caption centred on the board. */
+.mid::after {
+  content: '';
+  flex: none;
+  width: calc(var(--cw) * 1.5 + 4px);
+}
+.mid:has(.pending)::after {
+  display: none;
+}
+
+.caption {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.caption-line {
+  margin: 0;
+  max-width: 100%;
+  padding: 0.2rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.seen-strip {
+  display: flex;
+  gap: 4px;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.seen-card {
+  position: relative;
+  display: block;
+  flex: none;
+  width: calc(var(--cw) * 0.5);
+}
+
+.pending {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pending-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.pending-card {
+  width: calc(var(--cw) * 0.6);
+}
+
+/* Hands */
+
+.hand-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--cw) * 0.15);
+  min-width: 0;
+  margin-top: calc(var(--cw) * 0.1);
+}
+
+.board .hand-count {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.hand {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: calc(var(--cw) * 0.08);
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.hand li {
+  flex: 0 0 var(--cw);
+}
+
+.hand-card {
+  display: block;
+  width: 100%;
+}
+
+.hand-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: calc(var(--ch) * 0.45);
+  margin-bottom: calc(var(--cw) * 0.08);
+  text-align: left;
+}
+
+.strip-label {
+  flex: none;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.strip-cards {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.strip-card {
+  flex: 0 0 calc(var(--cw) * 0.4);
+}
+
+.strip-card.hit {
+  outline-width: 2px;
+  outline-offset: 1px;
+}
+
+/* Timeline and controls */
+
+.replay-controls {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.timeline-wrap {
+  position: relative;
+  padding: 0.55rem 0 0.45rem;
+}
+
+.timeline {
+  position: relative;
+  height: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.timeline:has(.tl-input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The slider for keyboard and screen readers; pointers use the bar. */
+.tl-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tl-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  box-shadow: inset 1px 0 var(--surface);
+}
+.tl-seg.turn-a {
+  background: color-mix(in srgb, var(--pa) 30%, var(--surface));
+}
+.tl-seg.turn-b {
+  background: color-mix(in srgb, var(--pb) 30%, var(--surface));
+}
+.tl-seg.turn-none {
+  background: var(--row-hover);
+}
+
+.tl-mark {
+  position: absolute;
+  z-index: 1;
+  transform: translateX(-50%);
+}
+
+/* Knock Out: a dot above the bar in the colour of whose Pokémon it was. */
+.tl-mark.ko {
+  top: -0.5rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+}
+.tl-mark.ko.side-a {
+  background: var(--pa);
+}
+.tl-mark.ko.side-b {
+  background: var(--pb);
+}
+
+/* Branch: a diamond below the bar. */
+.tl-mark.branch {
+  bottom: -0.45rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 2px solid var(--surface);
+  background: var(--text);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.tl-handle {
+  position: absolute;
+  z-index: 2;
+  top: -0.3rem;
+  bottom: -0.3rem;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--text);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tl-tip {
+  position: absolute;
+  bottom: 100%;
+  z-index: 5;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  pointer-events: none;
+}
+
+.replay-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.replay-buttons button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.vertical .replay-position {
+  order: -1;
+  flex-basis: 100%;
+}
+
+.replay-position {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Log */
+
+.log {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  overflow-y: auto;
+  font-size: 0.88rem;
+}
+
+.log-turn {
+  margin: 0.6rem 0 0.2rem;
+  padding-left: 0.4rem;
+  border-left: 3px solid var(--border);
+  font-size: 0.8rem;
+}
+.log-turn.turn-a {
+  border-color: var(--pa);
+}
+.log-turn.turn-b {
+  border-color: var(--pb);
+}
+
+.log-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.9rem 1fr auto;
+  align-items: start;
+  gap: 0.1rem 0.4rem;
+  padding: 0.2rem 0.3rem;
+  border-radius: 0.375rem;
+}
+
+.log-entry.current {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.log-entry.later {
+  opacity: 0.6;
+}
+
+/* The jump button covers the entry; its thumbnail, card names and chevron sit above it. */
+.log .log-jump {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: inherit;
+  background: none;
+}
+
+.log .log-jump:only-child {
+  position: static;
+  grid-column: 1 / -1;
+  padding: 0.1rem 0;
+  text-align: left;
+}
+
+@media (hover: hover) {
+  .log-entry:hover {
+    background: var(--row-hover);
+  }
+  .log-entry.current:hover {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+}
+
+.log .log-thumb {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 1.9rem;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.log-text,
+.log-changes {
+  position: relative;
+  z-index: 1;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.log-text button,
+.log-changes button {
+  pointer-events: auto;
+}
+
+.log .log-chevron {
+  position: relative;
+  z-index: 1;
+  padding: 0 0.4rem;
+  border: none;
+  background: none;
+}
+
+.log-changes {
+  grid-column: 2 / -1;
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.log .log-branch {
+  display: block;
+  margin: 0.2rem 0 0.2rem 2.3rem;
+  font-size: 0.82rem;
+}
+
+.flag-tag button {
+  padding: 0 0.4em;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-decoration: none;
+  vertical-align: 0.1em;
+}
+
+.flag-tag [role='tooltip'] {
+  font-size: 0.8rem;
+}
+
+/* Dialogs */
+
+.dialog {
+  max-width: min(36rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 1rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+
+.dialog h2 {
+  margin: 0 2.5rem 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.dialog h3 {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.9rem;
+}
+
+.dialog-close {
+  float: right;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: -0.25rem -0.25rem 0 0.5rem;
+}
+
+.closeup-card {
+  width: min(22rem, calc(100vw - 5rem), calc((100dvh - 9rem) * 245 / 337));
+  margin: 0 auto;
+  clear: both;
+}
+
+.closeup-card .rc {
+  border-radius: 4.5% / 3.3%;
+}
+
+.closeup .rc-blank {
+  font-size: 1rem;
+}
+
+.list-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.25rem, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list-cards button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.list-cards button:disabled {
+  cursor: default;
+}
+
+.log-sheet {
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0;
+}
+
+.log-sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.log-sheet .dialog-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  margin: 0;
+}
+
+.paste textarea {
+  width: 100%;
+}
+
+.paste-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}

@@ -2,6 +2,7 @@
 // describing actions and changes as text. Card names stay as references (`CardRef`) so the
 // page can render them with `CardName`.
 import type { Action } from './types/Action'
+import type { Alternative } from './types/Alternative'
 import type { Change } from './types/Change'
 import type { Loc } from './types/Loc'
 import type { NewCard } from './types/NewCard'
@@ -70,6 +71,8 @@ export function turnLabel(turn: number, firstPlayer: number | null, viewpoint: V
 export interface CardRef {
   id: number | null
   print: string | null
+  /** Whose card it is, when known. */
+  owner?: number
 }
 export type Part = string | CardRef
 
@@ -105,7 +108,7 @@ export class Describer {
     return this.after.cards[id]?.card ?? this.before.cards[id]?.card ?? null
   }
 
-  card = (id: number): CardRef => ({ id, print: this.print(id) })
+  card = (id: number): CardRef => ({ id, print: this.print(id), owner: this.owner(id) })
 
   /** The Pokémon `id` belongs to, named by its top card (as it was before the step). */
   pokemon = (id: number): CardRef => {
@@ -170,13 +173,8 @@ export class Describer {
     return this.after.cards[id]?.owner ?? this.before.cards[id]?.owner
   }
 
+  /** The action as a sentence. Its `flag` isn't included: the page shows it as a tag. */
   action(a: Action): Part[] {
-    const parts = this.actionParts(a)
-    if (a.flag) parts.push(` (${a.flag})`)
-    return parts
-  }
-
-  private actionParts(a: Action): Part[] {
     const P = this.player
     switch (a.type) {
       case 'openingCoinFlip':
@@ -239,19 +237,33 @@ export class Describer {
     }
   }
 
-  /** Who acted, for actions that have a player. */
-  actor(a: Action): string | null {
-    if ('player' in a) return this.player(a.player)
-    return null
+  /** The action's main card, for its thumbnail: what was played, or the Pokémon that acted. */
+  mainCard(a: Action): CardRef | null {
+    switch (a.type) {
+      case 'playCard':
+      case 'playBasic':
+      case 'evolve':
+      case 'attachEnergy':
+      case 'trigger':
+        return this.card(a.card)
+      case 'useAbility':
+      case 'attack':
+      case 'knockOut':
+      case 'promote':
+      case 'retreat':
+        return this.pokemon(a.pokemon)
+      default:
+        return null
+    }
   }
 
+  /** "Guessed" alternatives as card references (instance IDs or prints). */
+  alternatives(alts: Alternative[] | undefined): CardRef[] {
+    return (alts ?? []).map((a) => (typeof a === 'number' ? this.card(a) : { id: null, print: a }))
+  }
+
+  /** A change as a sentence, without its `flag` (shown as a tag). */
   change(c: Change): Part[] {
-    const parts = this.changeParts(c)
-    if (c.flag) parts.push(` (${c.flag})`)
-    return parts
-  }
-
-  private changeParts(c: Change): Part[] {
     const P = this.player
     switch (c.type) {
       case 'draw':
@@ -320,3 +332,99 @@ const END_REASONS = {
   concede: 'concede',
   other: 'other',
 } as const
+
+/** What an action did to the table, for highlighting it on the board. */
+export interface Focus {
+  /** Cards the action moved or changed. A Pokémon counts when any card of it is here. */
+  touched: Set<number>
+  /** Players whose deck changed without a tracked card (cards put back, a shuffle). */
+  decks: Set<number>
+  /**
+   * Cards only looked at or revealed: they end up where they started (a revealed card that
+   * stays in hand, cards looked at and put back). `id` is null for a look at the whole deck.
+   */
+  seen: { id: number | null; print: string; count: number }[]
+}
+
+/** Where a card is, coarsely: a player's zone, the Stadium, or the deck when untracked. */
+function zoneOf(state: State, id: number): string {
+  const owner = state.cards[id]?.owner
+  if (owner === undefined) return 'deck'
+  if (state.stadium.includes(id)) return 'stadium'
+  const p = state.players[owner]
+  if (p.hand.includes(id)) return `${owner}hand`
+  if (p.deck.top.includes(id) || p.deck.bottom.includes(id)) return `${owner}deck`
+  if (p.prizes.includes(id)) return `${owner}prizes`
+  if (p.discard.includes(id)) return `${owner}discard`
+  if (p.lostZone.includes(id)) return `${owner}lost`
+  if (p.pending.includes(id)) return `${owner}pending`
+  for (const mon of [p.active, ...p.bench]) {
+    if (mon?.stack.includes(id) || mon?.attached.includes(id)) return `${owner}play${mon.stack[0]}`
+  }
+  return 'deck'
+}
+
+export function focusOf(a: Action, before: State, after: State): Focus {
+  const touched = new Set<number>()
+  const decks = new Set<number>()
+  const looked = new Map<number, string>()
+  const seen: Focus['seen'] = []
+  const add = (...ids: (number | undefined)[]) => {
+    for (const id of ids) if (id !== undefined) touched.add(id)
+  }
+  if ('card' in a) add(a.card)
+  if ('onto' in a) add(a.onto)
+  if ('pokemon' in a) add(a.pokemon)
+  if ('to' in a) add(a.to)
+  if ('from' in a) add(a.from)
+  for (const c of a.changes) {
+    switch (c.type) {
+      case 'draw':
+      case 'fromDeck':
+        for (const n of c.cards) {
+          add(n.id)
+          if (n.card) looked.set(n.id, n.card)
+        }
+        break
+      case 'move':
+        add(...c.cards)
+        break
+      case 'toDeck':
+        add(...c.cards)
+        for (const id of c.cards) {
+          const owner = before.cards[id]?.owner ?? after.cards[id]?.owner
+          if (owner !== undefined) decks.add(owner)
+        }
+        break
+      case 'shuffle':
+        decks.add(c.player)
+        break
+      case 'reveal':
+        for (const [id, print] of Object.entries(c.cards)) looked.set(Number(id), print)
+        break
+      case 'lookAtDeck':
+        for (const [print, count] of c.contents) seen.push({ id: null, print, count })
+        break
+      case 'switch': {
+        add(c.bench)
+        const was = before.players[c.player].active
+        if (was) add(was.stack[0])
+        break
+      }
+      case 'damage':
+      case 'counters':
+      case 'heal':
+      case 'condition':
+        add(c.pokemon)
+        break
+    }
+  }
+  // Drawn cards that stayed in the deck were only looked at; so were revealed cards that
+  // didn't move. Cards that moved show where they went instead.
+  const stayed = [...looked]
+    .filter(([id]) => zoneOf(before, id) === zoneOf(after, id))
+    .map(([id, print]) => ({ id, print, count: 1 }))
+  // Those still on the table are highlighted there too.
+  for (const s of stayed) if (zoneOf(after, s.id) !== 'deck') touched.add(s.id)
+  return { touched, decks, seen: [...stayed, ...seen] }
+}

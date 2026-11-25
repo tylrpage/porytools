@@ -89,6 +89,16 @@ with none of Live's art, mat, badge shapes or colours.
 - **Buttons:** first, previous, next, last, previous turn, next turn.
 - **Keys:** ← / → step, Shift+← / → jump turns, Home / End.
 
+## Built (choices made while building)
+- Player colours go by seat, not by player number: the bottom player is blue, the top one
+  red (both modes), so "you" keep one colour when Viewpoint flips the board.
+- The Stadium sits at the left of the middle line, with the caption centred beside it.
+- The horizontal view needs a landscape window at least 60rem wide.
+- The timeline's pointer handling is on the bar; a hidden range input under it is the
+  slider for keyboard and screen readers.
+- Damage badges are neutral (text colour), so they never read as a player's colour.
+- Special Energy is a ringed neutral circle; its name is in the label and the close-up.
+
 ## Later
 - Sharper close-ups would need a second, large image URL per card (CLAUDE.md allows one
   today). Check on real phones whether the scaled small image is good enough.

@@ -112,16 +112,17 @@ The foundation for the solver output, replays, and mid-game analysis.
   shown as either player sees them (projection); `check` errors listed. The page is a lazy
   route, so only it downloads the WASM
 - ☑ Visual replay viewer designed with the owner (2026-11-24): `docs/replay-viewer.md`
-- ☐ Visual replay viewer (replaces the text board), per `docs/replay-viewer.md`:
-  - ☐ Full-width page, toolbar (samples, paste dialog, Viewpoint, `check` count),
+- ☑ Visual replay viewer (replaces the text board), per `docs/replay-viewer.md`
+  (`web/src/pages/Replay.tsx`, `web/src/replay/`):
+  - ☑ Full-width page, toolbar (samples, paste dialog, Viewpoint, `check` count),
     automatic horizontal (log column) / vertical (Log sheet) views
-  - ☐ Board: playmat layout in our own look, card images and CSS backs, Pokémon with
+  - ☑ Board: playmat layout in our own look, card images and CSS backs, Pokémon with
     damage, Energy, Tools, evolution edge and conditions; Bench up to 8; two-wide Stadium;
     prize fan; piles and hands (scrolling hand) with card lists; close-up on tap;
     highlight + caption for the current action; aria labels
-  - ☐ Log: chronological by turn, thumbnails, player colours, changes behind a chevron,
+  - ☑ Log: chronological by turn, thumbnails, player colours, changes behind a chevron,
     `guessed` / `inferred` tags, branches
-  - ☐ Timeline: turn segments, KO and branch markers, draggable position; turn jumps and
+  - ☑ Timeline: turn segments, KO and branch markers, draggable position; turn jumps and
     keyboard keys
   - ☐ Check on real phones whether the small card images are sharp enough for close-ups
     (else add a large image URL per card)
