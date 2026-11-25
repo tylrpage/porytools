@@ -106,6 +106,9 @@ with the reason.
   tokens, never hardcode a one-theme colour.
 - Accessibility basics are enforced by the `jsx-a11y` lint rules (labels, alt text,
   keyboard access). Fix them; don't disable them.
+- **Icons are inline SVG, never emoji or symbol characters** (`replay/Icons.tsx`). Characters
+  like ⏭ or ▶ draw from each device's fonts, and iOS turns some into colour emoji, so the
+  same button looks different per device. SVG in `currentColor` looks the same everywhere.
 - **Icon-only buttons show their name on hover and keyboard focus, plus the keyboard
   shortcut (muted) if there is one** (`replay/ScrubButton.tsx`). Icons alone don't say
   what they do, and the tip teaches the shortcuts. Hover only on mouse screens, since a

@@ -137,12 +137,23 @@ fine for now (owner, 2026-11-25).
 
 1. ☐ **Caption text too big on phones.** The centre action text looks right on desktop but
    on the phone is much bigger than other text on screen. Make it smaller so more fits on a
-   line.
-2. ☐ **Stadium outline cut off on the right** (iOS Safari only; Firefox iOS is fine).
+   line. Likely cause: iOS text autosizing (no `text-size-adjust` was set). Fix: turned off
+   site-wide in `index.css`, and the caption is 0.8rem (was 0.9rem) on screens under 40rem.
+2. ☐ **Stadium outline cut off on the right** (iOS Safari only; Firefox iOS is fine). Not
+   reproduced here (no WebKit on the PC). Guess: Safari clipping an outline inside the
+   transformed `.stadium` box. Fix tried: the Stadium is centred on the middle line by flex
+   instead of `translateY(-50%)`. Needs the owner's check on the phone.
 3. ☐ **Opponent's hand area too narrow;** it cuts off the cards.
 4. ☐ **Your hand isn't centred;** it starts at the left and fills to the right.
+   Likely cause of 3 and 4: Safari takes a flex item's intrinsic width from its content (the
+   card image or back), not from `flex-basis`, so the shrink-to-fit rows came out too narrow
+   (backs, no width of their own) or too wide (images, at their own pixel width, so the row
+   filled the area from the left). Fix: the hand and strip cards get an explicit `width`.
 5. ☐ **Opponent's prizes grow the wrong way** (desktop and iOS). Their board is mirrored,
    so their prize zone starts towards the middle line and grows upwards (on screen); today
-   it starts at the top.
+   it starts at the top. Fix: the top player's stack is laid out from the bottom of its
+   column (`bottom` instead of `top`); the count stays at the bottom right.
 6. ☐ **Turn-jump buttons as vector icons.** Replace the previous/next turn emoji with an
-   SVG (two arrows and a vertical line), so it looks the same on every device.
+   SVG (two arrows and a vertical line), so it looks the same on every device. Fix: all four
+   playback buttons use `replay/Icons.tsx` (the ◀ ▶ characters can turn into emoji on iOS
+   too). Guideline added.

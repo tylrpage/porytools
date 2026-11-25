@@ -11,6 +11,9 @@
   --row-hover: color-mix(in srgb, var(--text) 9%, transparent);
 
   color-scheme: light dark;
+  /* No text autosizing: iOS Safari otherwise enlarges some text blocks (the replay caption). */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   font-family:
     system-ui,
     -apple-system,

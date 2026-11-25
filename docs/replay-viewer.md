@@ -105,7 +105,8 @@ with none of Live's art, mat, badge shapes or colours.
 - A vertical line with a handle marks the current position; drag it, or click the bar to
   jump. It is a real slider for keyboard and screen readers ("Action 12 of 40, Your turn
   2").
-- **Buttons:** previous turn (⏮), previous action, next action, next turn (⏭). No
+- **Buttons:** previous turn, previous action, next action, next turn, as SVG
+  icons (`replay/Icons.tsx`: bar and two arrows for turns, one arrow for actions). No
   first/last buttons (owner feedback); Home / End still jump there.
 - **Keys:** ← / → step, Shift+← / → jump turns, Home / End.
 

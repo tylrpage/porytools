@@ -31,6 +31,7 @@ import {
   type Viewer as ViewerValue,
 } from '../replay/context.ts'
 import Dialog from '../replay/Dialog.tsx'
+import Icon from '../replay/Icons.tsx'
 import Log from '../replay/Log.tsx'
 import ScrubButton from '../replay/ScrubButton.tsx'
 import ShownDialog from '../replay/ShownDialog.tsx'
@@ -355,7 +356,7 @@ function Viewer({
                 onClick={prevTurn}
                 disabled={at === 0}
               >
-                ⏮
+                <Icon name="prevTurn" />
               </ScrubButton>
               <ScrubButton
                 label="Previous action"
@@ -364,7 +365,7 @@ function Viewer({
                 onClick={() => setPos(at - 1)}
                 disabled={at === 0}
               >
-                ◀
+                <Icon name="prev" />
               </ScrubButton>
               <ScrubButton
                 label="Next action"
@@ -373,7 +374,7 @@ function Viewer({
                 onClick={() => setPos(at + 1)}
                 disabled={at === last}
               >
-                ▶
+                <Icon name="next" />
               </ScrubButton>
               <ScrubButton
                 label="Next turn"
@@ -382,7 +383,7 @@ function Viewer({
                 onClick={nextTurn}
                 disabled={at === last}
               >
-                ⏭
+                <Icon name="nextTurn" />
               </ScrubButton>
               <span className="replay-position">
                 <strong>{turnText}</strong>
