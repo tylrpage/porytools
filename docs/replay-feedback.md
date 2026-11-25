@@ -65,14 +65,33 @@ when fixed. Delete items once done and the owner has checked them; delete the fi
    Done: spare height is split evenly either side of the mat. Measured edge-to-mat /
    mat-to-hand: 22.4 / 22.4px (390×844), 56.3 / 56.3 (480×1000), 12.9 / 12.9 (1229×1304),
    10.2 / 10.2 (1092×1000 horizontal), same on both sides and at every action.
-5. ☐ **New card back (still a placeholder):** stripes kept but subtler and fewer/wider; the
-   centre O becomes a lowercase "p" in the header logo's font.
+5. ☑ **New card back (still a placeholder):** stripes kept but subtler and fewer/wider; the
+   centre O becomes a lowercase "p" in the header logo's font. Done: two greys 30% / 35%
+   text-on-surface (was 30% / 42%), bands 8% of the card's diagonal (about six pairs per
+   card), and a bold system-font "p" (the logo is the body font at weight 700) sized in
+   container units, so a hand-strip back, a deck and the close-up all look alike. Derived
+   from the theme tokens; checked in light and dark.
 6. ☑ **Scrub buttons explain themselves on hover:** what they do plus the keyboard shortcut,
    the shortcut in muted text.
-7. ☐ **Highlights on the opponent's hand strip cards** don't reach the card's left side and
-   the corner radius doesn't match the card.
-8. ☐ **One highlight style everywhere:** hand, deck and discard highlights have sharp
+7. ☑ **Highlights on the opponent's hand strip cards** don't reach the card's left side and
+   the corner radius doesn't match the card. Cause: the strip's cards were 2px apart, so
+   each card's outline ran over its neighbour's edge and they merged, and the radius was a
+   fixed 6px on a ~45px card. Now the cards are 8px apart (padding 4px for the clipping
+   strip), with the shared style from 8. The strip as a whole no longer gets an outline
+   too; its changed cards do (it's still in the strip's aria label).
+8. ☑ **One highlight style everywhere:** hand, deck and discard highlights have sharp
    corners unlike the Active/Bench ones. Every outline around a card matches its radius.
+   Cause: those are buttons, and `.board button { border-radius: 0 }` beat `.hit`'s
+   radius. Now one rule: 3px accent outline, 1px offset, on a card-sized box with the
+   card's own radius (5% / 3.6%), which the outline follows concentrically. Applies to
+   hand, hand strip, deck, discard, Lost Zone, Stadium, seen strip, Active/Bench, and
+   prizes, which now highlight per card instead of outlining the whole column. Rows where
+   several cards can light up together keep at least 8px between cards (hand, strip, seen
+   strip, Legendary Stadium pair), so outlines never touch. Checked at actions 3, 4, 5, 7,
+   9, 11, 15, 23, 24 and 25, and over all 53 actions at 390×844 that no outline is clipped
+   (except hand cards scrolled out of view) and no area changes size. Left as is: Bench
+   gaps (0.12 card) are under 8px on phones, so two adjacent highlighted Bench Pokémon can
+   touch there.
 9. ☑ **Horizontal threshold at the owner's window.** Their current window should just be
    vertical. Measured 1237×1248 with Chrome's "debugging this browser" banner, which takes
    about 40px of height, so ~1237×1285 (ratio ~0.96) without it. Threshold set to 0.97.

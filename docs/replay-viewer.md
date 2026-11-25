@@ -31,8 +31,10 @@ with none of Live's art, mat, badge shapes or colours.
   unless Viewpoint picks Player 2, which flips the board.
 - **Card faces:** the small image from `cards.json` (TCGdex / pokemontcg.io CDN, never
   hosted). No image: a drawn placeholder face with name, HP and type.
-- **Card backs:** our own CSS-drawn neutral back, never the official one. Used for the
-  deck, prizes, the opponent's hand, unknown cards and face-down Pokémon.
+- **Card backs:** our own CSS-drawn neutral back, never the official one: wide, faint
+  diagonal stripes and a bold lowercase "p" (the header logo's font), both scaled to the
+  card. A placeholder. Used for the deck, prizes, the opponent's hand, unknown cards and
+  face-down Pokémon.
 - **Pokémon in play:**
   - Damage as a badge with the damage amount (no remaining-HP figure).
   - Attached Energy as small coloured type circles drawn by us (not the official symbols).
@@ -63,7 +65,9 @@ with none of Live's art, mat, badge shapes or colours.
 - **Tapping** a pile or a hand opens a list of its cards (with known deck top / bottom).
   Tapping or clicking a card opens a close-up (the small image scaled up). No hover
   previews on the board: the cards are already pictures.
-- **The current action:** the cards it moved or changed get an outline, and a one-line
+- **The current action:** the cards it moved or changed get an outline (one style on every
+  card, following the card's rounded corners; prizes and the opponent's hand per card, not
+  as a group), and a one-line
   caption of the action sits over the Stadium line (like Live's banner). Results show where
   cards ended up: Poké Pad highlighted in the discard and the found card in the hand; a
   Stadium in its slot; a Tool on its Pokémon. Cards only looked at or revealed, that don't

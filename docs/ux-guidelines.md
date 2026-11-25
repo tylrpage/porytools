@@ -83,6 +83,11 @@ with the reason.
   card instead of adding a line. The grey gap around the areas is even on all four sides.
   Moving between actions should change only what the action changed, or the eye chases the
   layout instead of the cards.
+- **One highlight style for every card, its outline following the card's corners.** Same
+  colour, width and offset on hand, piles, prizes, Stadium, Active and Bench, with the
+  card's own corner radius on the outlined box, and groups (a hand strip, the prize stack)
+  highlighted per card. Rows that can light up several cards keep enough gap and padding
+  that outlines neither merge nor get clipped. Mixed styles read as different meanings.
 - **A vertical wheel over a row that scrolls sideways scrolls the row** (the hand), until it
   reaches the end; then the page scrolls as usual. A mouse has no sideways wheel, so
   otherwise the row can only be dragged by its scroll bar.

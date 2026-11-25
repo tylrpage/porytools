@@ -136,11 +136,13 @@ function Prizes({ player }: { player: number }) {
   const v = useViewer()
   const { db, state } = v
   const prizes = state.players[player].prizes
+  const hit = touched(v, prizes)
+  // The highlight goes on each changed card, not the whole column, like every other card.
   return (
     <button
       type="button"
-      className={cls('prizes', touched(v, prizes) && 'hit')}
-      aria-label={`Prizes: ${plural(prizes.length, 'card')}`}
+      className="prizes"
+      aria-label={`Prizes: ${plural(prizes.length, 'card')}${hit ? ', changed by this action' : ''}`}
       onClick={() =>
         v.show({
           kind: 'list',
@@ -152,7 +154,11 @@ function Prizes({ player }: { player: number }) {
       <span className="fan" style={vars({ '--n': prizes.length })}>
         {prizes.length === 0 && <span className="slot" />}
         {prizes.map((id, i) => (
-          <span key={id} className="fan-card" style={vars({ '--i': i })}>
+          <span
+            key={id}
+            className={cls('fan-card', touched(v, [id]) && 'hit')}
+            style={vars({ '--i': i })}
+          >
             <CardFace db={db} print={state.cards[id]?.card ?? null} />
           </span>
         ))}
@@ -337,11 +343,12 @@ function HandStrip({ player }: { player: number }) {
   const { db, state } = v
   const hand = state.players[player].hand
   const items = group(state, hand)
+  // Changed cards are highlighted one by one; the strip itself gets no outline.
   const hit = touched(v, hand)
   return (
     <button
       type="button"
-      className={cls('hand-strip', hit && 'hit')}
+      className="hand-strip"
       aria-label={`Hand: ${plural(hand.length, 'card')}${hand.length ? ` (${itemsText(db, items)})` : ''}${hit ? ', changed by this action' : ''}`}
       onClick={() =>
         v.show({ kind: 'list', title: `Hand (${hand.length})`, sections: [{ items }] })

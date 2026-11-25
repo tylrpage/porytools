@@ -17,7 +17,7 @@
   --pb-text: #b91c1c;
   --mat: color-mix(in srgb, var(--text) 3%, var(--bg));
   --back-a: color-mix(in srgb, var(--text) 30%, var(--surface));
-  --back-b: color-mix(in srgb, var(--text) 42%, var(--surface));
+  --back-b: color-mix(in srgb, var(--text) 35%, var(--surface));
   --hit: var(--accent);
   --e-grass: #3f9f4a;
   --e-fire: #e2552d;
@@ -132,7 +132,7 @@
 .board {
   --label-h: 1rem;
   --mid-h: 2rem;
-  --cw: min(calc(100cqw / 8.4), calc((100cqh - 28px - 2 * var(--label-h) - var(--mid-h)) / 8.7));
+  --cw: min(calc(100cqw / 8.4), calc((100cqh - 30px - 2 * var(--label-h) - var(--mid-h)) / 8.7));
   --ch: calc(var(--cw) * 337 / 245);
   --pad: calc(var(--cw) * 0.08);
   /* How far the Stadium reaches past the middle line into each area's padding box. */
@@ -242,21 +242,30 @@
 
 .rc-back {
   position: relative;
+  container-type: inline-size;
+  /* Placeholder back: wide, low-contrast stripes in % of the card, so every size of back
+     looks the same, and a lowercase "p" in the header logo's font (body font, bold). */
   background: repeating-linear-gradient(
     135deg,
-    var(--back-a) 0 0.25rem,
-    var(--back-b) 0.25rem 0.5rem
+    var(--back-a) 0 8%,
+    var(--back-b) 8% 16%
   );
   border: 2px solid var(--surface);
   box-shadow: 0 0 0 1px var(--border);
 }
 
 .rc-back::after {
-  content: '';
+  content: 'p';
   position: absolute;
-  inset: 22% 18%;
-  border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--surface) 70%, transparent);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 11cqi;
+  font-size: 62cqi;
+  font-weight: 700;
+  line-height: 1;
+  color: color-mix(in srgb, var(--surface) 85%, transparent);
 }
 
 .rc-blank {
@@ -297,14 +306,19 @@
   border-radius: 5% / 3.6%;
 }
 
-/* Highlight for what the current action moved or changed (also in the aria labels). */
-.hit,
-.mon.hit .mon-card {
+/* Highlight for what the current action moved or changed (also in the aria labels). One
+   style on every card: it goes on a card-sized box and takes the card's corner radius, which
+   the outline follows (growing by the offset, so it stays concentric). Reaches 4px past the
+   card: rows of cards that can light up together keep at least 8px between cards, and
+   clipping or scrolling rows have 4px of padding, so outlines never merge or get cut off.
+   .replay-page beats `.board button`'s radius. */
+.replay-page .hit,
+.replay-page .mon.hit .mon-card {
   outline: 3px solid var(--hit);
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline-offset: 1px;
+  border-radius: 5% / 3.6%;
 }
-.mon.hit {
+.replay-page .mon.hit {
   outline: none;
 }
 
@@ -542,7 +556,7 @@
   display: flex;
   align-items: center;
   gap: calc(var(--cw) * 0.3);
-  padding: 0 calc(var(--stadium-left) + var(--cw) * 1.7 + 4px);
+  padding: 0 calc(var(--stadium-left) + var(--cw) * 1.7 + 8px);
 }
 
 .stadium {
@@ -552,8 +566,8 @@
   z-index: 2;
   transform: translateY(-50%);
   display: flex;
-  gap: 4px;
-  width: calc(var(--cw) * 1.5 + 4px);
+  gap: 8px;
+  width: calc(var(--cw) * 1.5 + 8px);
 }
 
 .stadium-card {
@@ -592,7 +606,7 @@
 
 .seen-strip {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   max-width: 100%;
   margin: 0;
   padding: 4px;
@@ -651,7 +665,7 @@
   min-width: 0;
   display: flex;
   align-items: flex-start;
-  gap: calc(var(--cw) * 0.08);
+  gap: max(8px, var(--cw) * 0.08);
   margin: 0;
   padding: 5px;
   list-style: none;
@@ -675,27 +689,22 @@
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  height: calc(var(--ch) * 0.4 + 8px + var(--label-h));
+  height: calc(var(--ch) * 0.4 + 10px + var(--label-h));
   text-align: left;
 }
 
 .strip-cards {
   align-self: center;
   display: flex;
-  gap: 2px;
+  gap: 8px;
   max-width: 100%;
   min-width: 0;
-  padding: 3px;
+  padding: 4px;
   overflow: hidden;
 }
 
 .strip-card {
   flex: 0 0 calc(var(--cw) * 0.4);
-}
-
-.strip-card.hit {
-  outline-width: 2px;
-  outline-offset: 1px;
 }
 
 /* Timeline and controls */
