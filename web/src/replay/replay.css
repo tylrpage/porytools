@@ -815,6 +815,45 @@
   gap: 0.3rem;
 }
 
+/* Playback buttons: name and shortcut above on hover or keyboard focus. Mouse only for
+   hover, since a tap would leave it stuck open. */
+.scrub {
+  position: relative;
+  display: inline-flex;
+}
+
+.scrub-tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  left: 50%;
+  z-index: 10;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  pointer-events: none;
+}
+
+/* The first button's tip would hang off the left edge if centred. */
+.scrub:first-child .scrub-tip {
+  left: 0;
+  transform: none;
+}
+
+@media (hover: hover) {
+  .scrub:hover .scrub-tip {
+    display: block;
+  }
+}
+.scrub:has(:focus-visible) .scrub-tip {
+  display: block;
+}
+
 .replay-buttons button:disabled {
   opacity: 0.4;
   cursor: default;

@@ -40,3 +40,27 @@ when fixed. Delete items once done and the owner has checked them; delete the fi
    actions 0, 3, 4, 20, 30, 45 and in the solver sample; grey gap equal on all four sides
    (6.2px; was 134 top/bottom vs 8 sides at action 0). A caption longer than the middle line
    now spills over the areas instead of resizing them. Guideline added.
+
+## Round 2 (2026-11-25)
+
+1. ☐ **Less empty room on the middle line.** Shorten it; the Stadium may overlap both
+   player areas. Move the Stadium right so it clears the prizes (or move prizes outward,
+   see 2), but leave room for the centred caption.
+2. ☐ **Hand labels centred above each hand, from each player's view.** The opponent's
+   "Opponent · Hand N" style is right; the bottom player's "You · Hand N" matches its style
+   and goes at the bottom left (its own top-left, mirrored). Frees room so prizes can move
+   outward from the middle and the Stadium can move a little right.
+3. ☐ **Wheel over the hand scrolls the hand, not the page.**
+4. ☐ **Per-player mat sits lower (from that player's view)**, hand excepted: the mat is
+   tight against the area's outer edge with a big gap to the hand. Margins about equal.
+5. ☐ **New card back (still a placeholder):** stripes kept but subtler and fewer/wider; the
+   centre O becomes a lowercase "p" in the header logo's font.
+6. ☑ **Scrub buttons explain themselves on hover:** what they do plus the keyboard shortcut,
+   the shortcut in muted text.
+7. ☐ **Highlights on the opponent's hand strip cards** don't reach the card's left side and
+   the corner radius doesn't match the card.
+8. ☐ **One highlight style everywhere:** hand, deck and discard highlights have sharp
+   corners unlike the Active/Bench ones. Every outline around a card matches its radius.
+9. ☑ **Horizontal threshold at the owner's window.** Their current window should just be
+   vertical. Measured 1237×1248 with Chrome's "debugging this browser" banner, which takes
+   about 40px of height, so ~1237×1285 (ratio ~0.96) without it. Threshold set to 0.97.

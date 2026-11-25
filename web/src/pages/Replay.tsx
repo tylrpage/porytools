@@ -32,6 +32,7 @@ import {
 } from '../replay/context.ts'
 import Dialog from '../replay/Dialog.tsx'
 import Log from '../replay/Log.tsx'
+import ScrubButton from '../replay/ScrubButton.tsx'
 import ShownDialog from '../replay/ShownDialog.tsx'
 import { buildSteps, cardName, turnSpans, type LogStep } from '../replay/steps.ts'
 import { FlagTag, Player, Text } from '../replay/Text.tsx'
@@ -347,38 +348,42 @@ function Viewer({
               onKey={onKey}
             />
             <div className="replay-buttons">
-              <button
-                type="button"
+              <ScrubButton
+                label="Previous turn"
+                keys="Shift + ←"
+                shortcut="Shift+ArrowLeft"
                 onClick={prevTurn}
                 disabled={at === 0}
-                aria-label="Previous turn"
               >
                 ⏮
-              </button>
-              <button
-                type="button"
+              </ScrubButton>
+              <ScrubButton
+                label="Previous action"
+                keys="←"
+                shortcut="ArrowLeft"
                 onClick={() => setPos(at - 1)}
                 disabled={at === 0}
-                aria-label="Previous action"
               >
                 ◀
-              </button>
-              <button
-                type="button"
+              </ScrubButton>
+              <ScrubButton
+                label="Next action"
+                keys="→"
+                shortcut="ArrowRight"
                 onClick={() => setPos(at + 1)}
                 disabled={at === last}
-                aria-label="Next action"
               >
                 ▶
-              </button>
-              <button
-                type="button"
+              </ScrubButton>
+              <ScrubButton
+                label="Next turn"
+                keys="Shift + →"
+                shortcut="Shift+ArrowRight"
                 onClick={nextTurn}
                 disabled={at === last}
-                aria-label="Next turn"
               >
                 ⏭
-              </button>
+              </ScrubButton>
               <span className="replay-position">
                 <strong>{turnText}</strong>
                 {result && ` · ${result}`}

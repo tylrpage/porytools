@@ -100,8 +100,8 @@ with none of Live's art, mat, badge shapes or colours.
 - Player colours go by seat, not by player number: the bottom player is blue, the top one
   red (both modes), so "you" keep one colour when Viewpoint flips the board.
 - The Stadium sits at the left of the middle line, with the caption centred beside it.
-- The horizontal view needs a window at least 60rem wide and no taller than 5:4 (so a
-  half-screen window on a desktop monitor gets it).
+- The horizontal view needs a window at least 60rem wide with width/height ≥ 0.97. The
+  owner's roughly square desktop window (about 0.96) is just on the vertical side.
 - The timeline's pointer handling is on the bar; a hidden range input under it is the
   slider for keyboard and screen readers.
 - Damage badges are neutral (text colour), so they never read as a player's colour.
