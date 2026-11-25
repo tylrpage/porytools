@@ -128,7 +128,7 @@ The foundation for the solver output, replays, and mid-game analysis.
     (else add a large image URL per card)
 - ☐ **[owner]** Review the visual replay viewer (desktop and phone, both views, wording)
   - ☑ Round 1 feedback (9 layout items; one not reproduced): `docs/replay-feedback.md`
-  - ☐ Round 2 feedback (9 items): same file
+  - ☑ Round 2 feedback (9 items): same file
 
 ## M4 — Rust solver core (goldfish simulator) ☐
 - ☐ Solver runs in a Web Worker (the crate itself is set up in M3)
