@@ -33,7 +33,7 @@ with none of Live's art, mat, badge shapes or colours.
   hosted). No image: a drawn placeholder face with name, HP and type.
 - **Card backs:** our own CSS-drawn neutral back, never the official one: wide, faint
   diagonal stripes and a bold lowercase "p" (the header logo's font), both scaled to the
-  card. A placeholder. Used for the deck, prizes, the opponent's hand, unknown cards and
+  card, the "p" placed so its bowl is at the card's centre. A placeholder. Used for the deck, prizes, the opponent's hand, unknown cards and
   face-down Pokémon.
 - **Pokémon in play:**
   - Damage as a badge with the damage amount (no remaining-HP figure).
@@ -46,7 +46,9 @@ with none of Live's art, mat, badge shapes or colours.
 - **Bench:** one row that shrinks its cards to fit up to 8 (Area Zero Underdepths).
 - **Stadium:** a slot two cards wide, since a Legendary Stadium is 2 cards side by side.
   Centred on the middle line, which is only one caption line high, so it reaches into both
-  areas; both prize stacks start clear of it.
+  areas. Horizontal view: a full card wide, half a card in from the left, with both prize
+  stacks starting clear of it. Vertical view: three quarters of a card, just right of the
+  prize column.
 - **Prizes:** a stack straight down the left side with a count; face up where known
   (all-seeing view).
 - **Deck:** a back with its count; a known top or bottom card shows face up on the pile.
@@ -55,8 +57,9 @@ with none of Live's art, mat, badge shapes or colours.
 - **Hands:** the bottom player's hand is a row of full-size cards, centred, that scrolls
   sideways when it doesn't fit (like Limitless's tabletop); a vertical mouse wheel over it
   scrolls it too. The top player's hand is a thin centred strip of small backs; known cards
-  face up, still small. Each has a one-line label ("You · Hand 7") at the left on the
-  player's side of the hand: above the top strip, below the bottom hand.
+  face up, still small. Each has a label line on the player's side of the hand (above the
+  top strip, below the bottom hand): the player's name in the corner and "Hand 7" centred
+  on the hand. The bottom player's "Hand 7" opens the list.
 - **Fixed size:** every row of the board has a fixed height in card sizes, so neither
   player's area changes size during the game (hands arriving, highlights, conditions) and
   the board never shifts while scrubbing. The areas share the spare height, split evenly
@@ -73,7 +76,8 @@ with none of Live's art, mat, badge shapes or colours.
   Stadium in its slot; a Tool on its Pokémon. Cards only looked at or revealed, that don't
   move (Pokégear 3.0's look, a search that finds nothing, a card revealed from hand, an
   opponent's hand revealed), appear as a small strip of cards in the caption, with any
-  that stay on the board highlighted. No animation in this pass.
+  that stay on the board highlighted. Not for revealing the starting Pokémon: they're
+  face up on the board already. No animation in this pass.
 - **Being played:** a played card enters and leaves the pending zone inside one action, so
   there's no display for it. Fallback: if a record ever leaves cards there between
   actions, they show in the centre so nothing silently disappears.
@@ -108,8 +112,9 @@ with none of Live's art, mat, badge shapes or colours.
 ## Built (choices made while building)
 - Player colours go by seat, not by player number: the bottom player is blue, the top one
   red (both modes), so "you" keep one colour when Viewpoint flips the board.
-- The Stadium sits near the left of the middle line (half a card in from the edge), with
-  the caption centred on the board and kept clear of it.
+- The Stadium sits near the left of the middle line (half a card in from the edge; in the
+  vertical view right of the prize column), with the caption centred on the board and kept
+  clear of it.
 - The horizontal view needs a window at least 60rem wide with width/height ≥ 0.97. The
   owner's roughly square desktop window (about 0.96) is just on the vertical side.
 - The timeline's pointer handling is on the bar; a hidden range input under it is the

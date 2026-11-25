@@ -282,8 +282,9 @@ function useWheelScrollsSideways<T extends HTMLElement>() {
   return ref
 }
 
-/** The bottom player's hand: full-size cards in a row that scrolls sideways, its label below
- *  (the player's own side, mirroring the top player's strip). */
+/** The bottom player's hand: full-size cards in a row that scrolls sideways, its labels below
+ *  (the player's own side, mirroring the top player's strip): the name in the corner and the
+ *  count centred under the hand, which opens the list. */
 function Hand({ player }: { player: number }) {
   const v = useViewer()
   const { db, state } = v
@@ -309,30 +310,36 @@ function Hand({ player }: { player: number }) {
           )
         })}
       </ul>
-      <button
-        type="button"
-        className="hand-label"
-        aria-label={`Hand: ${plural(hand.length, 'card')}. Show the list`}
-        onClick={() =>
-          v.show({
-            kind: 'list',
-            title: `Hand (${hand.length})`,
-            sections: [{ items: group(state, hand) }],
-          })
-        }
-      >
-        <HandLabel player={player} count={hand.length} />
-      </button>
+      <span className="hand-label">
+        <PlayerName player={player} />
+        <button
+          type="button"
+          className="hand-count"
+          aria-label={`Hand: ${plural(hand.length, 'card')}. Show the list`}
+          onClick={() =>
+            v.show({
+              kind: 'list',
+              title: `Hand (${hand.length})`,
+              sections: [{ items: group(state, hand) }],
+            })
+          }
+        >
+          <HandCount count={hand.length} />
+        </button>
+      </span>
     </div>
   )
 }
 
-function HandLabel({ player, count }: { player: number; count: number }) {
+function PlayerName({ player }: { player: number }) {
   const v = useViewer()
+  return <span className={`player player-${v.side(player)}`}>{v.name(player)}</span>
+}
+
+function HandCount({ count }: { count: number }) {
   return (
     <>
-      <span className={`player player-${v.side(player)}`}>{v.name(player)}</span> · Hand{' '}
-      <strong>{count}</strong>
+      Hand <strong>{count}</strong>
     </>
   )
 }
@@ -355,7 +362,10 @@ function HandStrip({ player }: { player: number }) {
       }
     >
       <span className="hand-label">
-        <HandLabel player={player} count={hand.length} />
+        <PlayerName player={player} />
+        <span className="hand-count">
+          <HandCount count={hand.length} />
+        </span>
       </span>
       <span className="strip-cards">
         {hand.map((id) => (

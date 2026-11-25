@@ -91,6 +91,10 @@ with the reason.
 - **A vertical wheel over a row that scrolls sideways scrolls the row** (the hand), until it
   reaches the end; then the page scrolls as usual. A mouse has no sideways wheel, so
   otherwise the row can only be dragged by its scroll bar.
+- **Hand labels mirror each other from each player's view.** On the hand's outer side
+  (below the bottom hand, above the top strip): the player's name in that corner, the count
+  ("Hand 7") centred on the hand. The count is what you tap for the list. Same style for
+  both players, on a row the area already reserves.
 - **Large tinted areas use opaque colours** (the tint mixed with the colour beneath), not
   transparency: Chrome can draw low-alpha backgrounds as faint uneven tiles.
 

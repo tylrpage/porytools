@@ -78,10 +78,18 @@ describe('replay page', () => {
     fireEvent.click(within(list).getByRole('button', { name: 'Close' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
-    // A revealed card that stays put shows in the caption's strip, highlighted.
+    // Revealing the starters highlights them on the board, with no strip of them in the
+    // caption.
     fireEvent.change(slider, { target: { value: '9' } })
-    const seen = screen.getByRole('list', { name: 'Looked at or revealed' })
-    expect(within(seen).getByRole('button', { name: 'ASC 16' })).toHaveClass('hit')
+    expect(caption()).toMatch(/Reveal starting Pokémon/)
+    expect(screen.queryByRole('list', { name: 'Looked at or revealed' })).not.toBeInTheDocument()
+    expect(
+      within(opponent).getByRole('button', { name: /^Active: ASC 16.*changed by this action/ }),
+    ).toBeInTheDocument()
+
+    // The hand count under the hand opens the list.
+    fireEvent.click(within(you).getByRole('button', { name: /^Hand: \d+ cards\. Show the list$/ }))
+    expect(screen.getByRole('dialog', { name: /^Hand \(\d+\)$/ })).toBeInTheDocument()
   })
 
   it('switches to a branch and shows an all-seeing record as one player', async () => {

@@ -98,18 +98,37 @@ when fixed. Delete items once done and the owner has checked them; delete the fi
 
 ## Round 3 (2026-11-25)
 
-1. ☐ **Card back "p" placed by its loop:** the bowl of the "p" sits at the card's centre
-   (not the glyph box). Back a little darker overall.
-2. ☐ **More room for the Stadium.** Vertical view: Stadium closer to the horizontal centre,
+1. ☑ **Card back "p" placed by its loop:** the bowl of the "p" sits at the card's centre
+   (not the glyph box). Back a little darker overall. Done: the "p" is centred by its bowl
+   with `text-box: trim-both ex alphabetic` (the box becomes x-height to baseline, i.e. the
+   bowl), plus a 0.01em nudge left; browsers without `text-box` (Firefox) get an offset
+   measured on Segoe UI bold. Measured at 1229×1304: bowl centre within 0.1px of the card's
+   centre both ways (it was ~5px low). Stripes 38% / 43% text-on-surface in light mode (was
+   30% / 35%) and 23% / 28% in dark mode, where less of the light text colour is darker.
+2. ☑ **More room for the Stadium.** Vertical view: Stadium closer to the horizontal centre,
    with clear room from the prizes. Horizontal view: prizes move a little further from the
-   middle line (vertically) so the Stadium card can be bigger.
-3. ☐ **Hand count centred on the hand's outer side, apart from the name.** The name stays
+   middle line (vertically) so the Stadium card can be bigger. Done: vertical, the Stadium
+   (still ¾ card) sits right of the prize column, 6px clear of the prize count and 10px of
+   the column, and the stacks also stay ~21px (390×844), ~55px (480×1000) or ~11px
+   (1229×1304) clear vertically. Horizontal, the Stadium is a full card wide (was ¾) and the
+   prize stacks start further from the middle line to match, ~8px clear. The caption keeps
+   8px from the Stadium; it reserves room for one Stadium card, or two when a Legendary
+   Stadium is in play (so it narrows only then). Cost: on a 390px phone the caption pill is
+   128px wide (was 140), so "You: Play Festival Grounds" wraps to three lines over the areas.
+   Area sizes and Active alignment unchanged over every action of both samples at 390×844,
+   480×1000, 1229×1304, 1092×1000 and 1600×1000.
+3. ☑ **Hand count centred on the hand's outer side, apart from the name.** The name stays
    in its corner ("You" bottom-left, "Opponent" top-left); "Hand N" is centred below the
    hand from that player's view (bottom player: under the hand; top player: above the
-   strip).
-4. ☐ **No seen-card strip for "Reveal starting Pokémon".** The starters are on the board
+   strip). Done: the label row is a three-column grid, the name at the left and "Hand N" in
+   the middle column, centred on the area and the cards (0px off at every size). The bottom
+   "Hand N" is the button that opens the list (same accessible name); the top one is part
+   of the strip's button as before.
+4. ☑ **No seen-card strip for "Reveal starting Pokémon".** The starters are on the board
    already, and the strip overlapped the Active Spots at every game start. Other uses of
-   the seen strip stay for now (to be revisited).
+   the seen strip stay for now (to be revisited). Done in `replay/steps.ts` by action kind
+   (`revealStart`); the revealed starter stays highlighted on the board. Neither sample has
+   another seen strip now, so the page test checks its absence there instead.
 
 Noted, not a task: the deck isn't highlighted when cards are drawn or set out as prizes;
 fine for now (owner, 2026-11-25).

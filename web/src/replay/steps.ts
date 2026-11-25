@@ -82,6 +82,10 @@ export function buildSteps(
       const name = mon.print ? (db.cardOfPrint(mon.print)?.name ?? 'Pokémon') : 'Pokémon'
       ko = { owner: mon.owner ?? 0, text: `${name} Knocked Out` }
     }
+    const focus = focusOf(action, before, after)
+    // The starters are turned face up on the board; a strip of them in the caption would only
+    // repeat them (and covered the Active Spots at every game start). They stay highlighted.
+    if (action.type === 'revealStart') focus.seen = []
     steps.push({
       node,
       // These sentences name the player themselves.
@@ -98,7 +102,7 @@ export function buildSteps(
       turn: after.turn,
       turnText: turnLabel(after.turn, after.firstPlayer, record.viewpoint),
       turnOwner,
-      focus: focusOf(action, before, after),
+      focus,
       ko,
       branches: siblings
         .filter((n) => n !== node)
