@@ -126,12 +126,17 @@
 
 /* Every row of the board has a fixed height in card sizes, so the areas keep one size all
    game (hands arriving, highlights, conditions). The areas share whatever height is left
-   over; --cw is the largest card width that fits: about 9.7 card widths plus 52px of fixed
-   room (hand scroll bar and outlines, strip padding, caption) top to bottom, 8.4 across. */
+   over; --cw is the largest card width that fits: about 8.7 card widths plus fixed room
+   (hand scroll bar and outlines, strip padding, the two hand labels, the middle line) top to
+   bottom, 8.4 across. */
 .board {
-  --cw: min(calc(100cqw / 8.4), calc((100cqh - 52px) / 9.7));
+  --label-h: 1rem;
+  --mid-h: 2rem;
+  --cw: min(calc(100cqw / 8.4), calc((100cqh - 28px - 2 * var(--label-h) - var(--mid-h)) / 8.7));
   --ch: calc(var(--cw) * 337 / 245);
   --pad: calc(var(--cw) * 0.08);
+  /* How far the Stadium reaches past the middle line into each area's padding box. */
+  --stadium-reach: max(0px, calc(var(--ch) * 0.375 - var(--mid-h) / 2 - var(--pad)));
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -159,16 +164,18 @@
   padding: calc(var(--cw) * 0.1);
   border-radius: 0.5rem;
 }
-/* Spare height goes between the hand and the mat, so the mats stay by the middle line. */
-.area.top .mat,
-.area.bottom .hand-row {
-  margin-top: auto;
+/* Spare height is split evenly either side of the mat: the gap from the area's edge to the
+   mat matches the gap from the mat to the hand. */
+.area .mat {
+  margin-block: auto;
 }
+/* Opaque tints (mixed with the board colour): Chrome draws low-alpha backgrounds unevenly
+   across paint tiles, showing faint lighter blocks. */
 .area.side-a {
-  background: color-mix(in srgb, var(--pa) 5%, transparent);
+  background: color-mix(in srgb, var(--pa) 5%, var(--mat));
 }
 .area.side-b {
-  background: color-mix(in srgb, var(--pb) 5%, transparent);
+  background: color-mix(in srgb, var(--pb) 5%, var(--mat));
 }
 
 /* Both mats use the same columns, so the two Active Spots line up. The pile column widens on
@@ -471,6 +478,13 @@
   position: relative;
   align-self: stretch;
 }
+/* The stack starts clear of the Stadium, which reaches over the middle line into both areas. */
+.area.bottom .prizes {
+  margin-top: max(0px, calc(var(--stadium-reach) - var(--cw) * 0.02));
+}
+.area.top .prizes {
+  margin-bottom: max(0px, calc(var(--stadium-reach) - var(--cw) * 0.02));
+}
 
 .fan {
   position: absolute;
@@ -516,19 +530,27 @@
 
 /* Middle line: Stadium and the caption of the current action. */
 
-/* Fixed height (a Stadium, or a caption line over a strip of seen cards); a longer caption
-   spills over the areas rather than resizing them. */
+/* One caption line high. The Stadium is centred on it and reaches into both areas (beside
+   the prizes, which start clear of it); a caption with a strip of seen cards spills over the
+   areas rather than resizing them. Side padding keeps the caption centred and clear of the
+   Stadium. */
 .mid {
+  --stadium-left: calc(var(--cw) * 0.5);
+  position: relative;
   flex: none;
-  height: calc(var(--ch) * 0.75 + 1.5rem);
+  height: var(--mid-h);
   display: flex;
   align-items: center;
   gap: calc(var(--cw) * 0.3);
-  padding: 0 calc(var(--cw) * 0.1);
+  padding: 0 calc(var(--stadium-left) + var(--cw) * 1.7 + 4px);
 }
 
 .stadium {
-  flex: none;
+  position: absolute;
+  left: var(--stadium-left);
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
   display: flex;
   gap: 4px;
   width: calc(var(--cw) * 1.5 + 4px);
@@ -542,16 +564,6 @@
   width: calc(var(--cw) * 0.75);
   font-size: max(0.6rem, calc(var(--cw) * 0.14));
   color: var(--muted);
-}
-
-/* Keeps the caption centred on the board. */
-.mid::after {
-  content: '';
-  flex: none;
-  width: calc(var(--cw) * 1.5 + 4px);
-}
-.mid:has(.pending)::after {
-  display: none;
 }
 
 .caption {
@@ -613,32 +625,29 @@
 
 /* Hands */
 
-/* Count on the left, cards centred on the row; with a wide hand the cards move right to
-   clear the count, then scroll. Fixed height: a card, its outline, a scroll bar. */
-.hand-row {
-  flex: none;
-  display: grid;
-  grid-template-columns: 1fr minmax(0, max-content) 1fr;
-  align-items: center;
-  column-gap: calc(var(--cw) * 0.15);
-  height: calc(var(--ch) + 20px);
+/* Each hand has its label ("You · Hand 7") on its own line on the player's side of the hand
+   (below the bottom hand, above the top strip), at the left; the cards are centred and a
+   hand too wide scrolls. Fixed height: the label, a card, its outline, a scroll bar. */
+.board .hand-label {
+  height: var(--label-h);
+  font-size: 0.75rem;
+  line-height: var(--label-h);
+  white-space: nowrap;
 }
 
-.board .hand-count {
-  justify-self: start;
+.hand-row {
+  flex: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 0.2rem 0.4rem;
-  border: 1px solid var(--border);
-  border-radius: 0.375rem;
-  background: var(--surface);
-  font-size: 0.75rem;
-  line-height: 1.2;
+  align-items: flex-start;
+  height: calc(var(--ch) + 20px + var(--label-h));
 }
 
 .hand {
-  align-self: stretch;
+  flex: 1;
+  align-self: center;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
   display: flex;
   align-items: flex-start;
@@ -658,29 +667,23 @@
   width: 100%;
 }
 
-/* Same arrangement as the hand row: label left, cards centred. Room for the cards' outlines
-   inside .strip-cards, which clips. */
+/* Mirror of the hand row: label above at the left, cards centred under it. Room for the
+   cards' outlines inside .strip-cards, which clips. */
 .hand-strip {
   flex: none;
-  display: grid;
-  grid-template-columns: 1fr minmax(0, max-content) 1fr;
-  align-items: center;
-  column-gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
-  height: calc(var(--ch) * 0.4 + 8px);
+  height: calc(var(--ch) * 0.4 + 8px + var(--label-h));
   text-align: left;
 }
 
-.strip-label {
-  justify-self: start;
-  font-size: 0.75rem;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
 .strip-cards {
+  align-self: center;
   display: flex;
   gap: 2px;
+  max-width: 100%;
   min-width: 0;
   padding: 3px;
   overflow: hidden;

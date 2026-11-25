@@ -20,12 +20,10 @@ when fixed. Delete items once done and the owner has checked them; delete the fi
 4. ☑ **Both players' prizes on the left.** The top side stays mirrored otherwise (Active
    nearest the middle line).
 5. ☑ **Prize stack straight down**, no sideways offset (`.fan-card` left offset).
-6. ☐ **Stray lighter blocks on the bottom (blue) side in actions 0–3**, gone at action 4.
-   Seen in the vertical view either side of the Active slot. Still not reproduced in Chrome
-   (vertical view at 390 and 480px wide, light and dark mode): no element in the bottom area
-   has a background or outline in actions 0–3. The only thing that changed at action 4 was
-   the bottom area growing for the hand, which item 9 removed. Owner to recheck; if it's
-   still there, note the browser and screen size.
+6. ☑ **Stray lighter blocks on the bottom (blue) side in actions 0–3**, gone at action 4.
+   Reproduced in Chrome (1229×1304). Cause: Chrome draws the areas' low-alpha tint
+   (`color-mix(… 5%, transparent)`) unevenly across paint tiles. The tints are now opaque,
+   mixed with the board colour; the blocks are gone. Guideline added.
 7. ☑ **Turn buttons take the ⏮/⏭ icons; drop the first/last-action buttons.** Leaves
    previous turn, previous action, next action, next turn. Home/End keys stay.
 8. ☑ **Centre the hands horizontally** (bottom hand and top hand strip). The count stays at
@@ -43,16 +41,30 @@ when fixed. Delete items once done and the owner has checked them; delete the fi
 
 ## Round 2 (2026-11-25)
 
-1. ☐ **Less empty room on the middle line.** Shorten it; the Stadium may overlap both
+1. ☑ **Less empty room on the middle line.** Shorten it; the Stadium may overlap both
    player areas. Move the Stadium right so it clears the prizes (or move prizes outward,
-   see 2), but leave room for the centred caption.
-2. ☐ **Hand labels centred above each hand, from each player's view.** The opponent's
+   see 2), but leave room for the centred caption. Done: the middle line is one caption line
+   (2rem; was 0.75 card + 1.5rem), the height going to bigger cards. The Stadium is centred
+   on it, reaching into both areas, 0.4 card further right than before; both prize stacks
+   start clear of it (~9–11px), and the caption keeps clear of it on both sides. Left as is:
+   a caption with a strip of seen cards (e.g. "Reveal starting Pokémon") is taller than the
+   line and, when there's no spare height, covers ~15px of each Active card for that action.
+2. ☑ **Hand labels centred above each hand, from each player's view.** The opponent's
    "Opponent · Hand N" style is right; the bottom player's "You · Hand N" matches its style
    and goes at the bottom left (its own top-left, mirrored). Frees room so prizes can move
-   outward from the middle and the Stadium can move a little right.
-3. ☐ **Wheel over the hand scrolls the hand, not the page.**
-4. ☐ **Per-player mat sits lower (from that player's view)**, hand excepted: the mat is
+   outward from the middle and the Stadium can move a little right. Done: both labels are
+   one plain line on their own row on the hand's outer side (above the top strip, below the
+   bottom hand), at the left, with the cards centred under/over it. Read "centred" as the
+   cards; the label stays left as asked. The bottom label still opens the hand list.
+3. ☑ **Wheel over the hand scrolls the hand, not the page.** A vertical wheel over a hand
+   that overflows scrolls it sideways; at either end the page scrolls as usual (so the
+   footer stays reachable on a tall page). Sideways trackpad scrolling unchanged. The
+   opponent's strip clips rather than scrolls, so it has nothing to scroll.
+4. ☑ **Per-player mat sits lower (from that player's view)**, hand excepted: the mat is
    tight against the area's outer edge with a big gap to the hand. Margins about equal.
+   Done: spare height is split evenly either side of the mat. Measured edge-to-mat /
+   mat-to-hand: 22.4 / 22.4px (390×844), 56.3 / 56.3 (480×1000), 12.9 / 12.9 (1229×1304),
+   10.2 / 10.2 (1092×1000 horizontal), same on both sides and at every action.
 5. ☐ **New card back (still a placeholder):** stripes kept but subtler and fewer/wider; the
    centre O becomes a lowercase "p" in the header logo's font.
 6. ☑ **Scrub buttons explain themselves on hover:** what they do plus the keyboard shortcut,

@@ -2,7 +2,7 @@
 // right, the Active Spot in the centre with the Bench behind it, the Stadium on the middle
 // line. The top player is mirrored top to bottom only (Active nearest the middle line), so
 // both players' prizes are on the left. See docs/replay-viewer.md.
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import type { Pokemon } from '../game/types/Pokemon'
 import CardFace from './CardFace.tsx'
 import {
@@ -252,31 +252,40 @@ function Discard({ player, lost = false }: { player: number; lost?: boolean }) {
   )
 }
 
-/** The bottom player's hand: full-size cards in a row that scrolls sideways. */
+/** A vertical wheel over a row that scrolls sideways scrolls the row while it can move that
+ *  way; at either end the page scrolls as usual. Needs a non-passive listener to stop the
+ *  page scrolling, which React's onWheel can't do. */
+function useWheelScrollsSideways<T extends HTMLElement>() {
+  const ref = useRef<T>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
+      const max = el.scrollWidth - el.clientWidth
+      if (max <= 0) return
+      const unit = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? el.clientWidth : 1
+      const dy = e.deltaY * unit
+      if ((dy < 0 && el.scrollLeft <= 0) || (dy > 0 && el.scrollLeft >= max - 1)) return
+      e.preventDefault()
+      el.scrollLeft += dy
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+  return ref
+}
+
+/** The bottom player's hand: full-size cards in a row that scrolls sideways, its label below
+ *  (the player's own side, mirroring the top player's strip). */
 function Hand({ player }: { player: number }) {
   const v = useViewer()
   const { db, state } = v
   const hand = state.players[player].hand
+  const scroller = useWheelScrollsSideways<HTMLUListElement>()
   return (
     <div className="hand-row">
-      <button
-        type="button"
-        className="hand-count"
-        aria-label={`Hand: ${plural(hand.length, 'card')}. Show the list`}
-        onClick={() =>
-          v.show({
-            kind: 'list',
-            title: `Hand (${hand.length})`,
-            sections: [{ items: group(state, hand) }],
-          })
-        }
-      >
-        <span className={`player player-${v.side(player)}`}>{v.name(player)}</span>
-        <span>
-          Hand <strong>{hand.length}</strong>
-        </span>
-      </button>
-      <ul className="hand" aria-label="Hand">
+      <ul className="hand" aria-label="Hand" ref={scroller}>
         {hand.map((id) => {
           const print = state.cards[id]?.card ?? null
           const hit = touched(v, [id])
@@ -294,7 +303,31 @@ function Hand({ player }: { player: number }) {
           )
         })}
       </ul>
+      <button
+        type="button"
+        className="hand-label"
+        aria-label={`Hand: ${plural(hand.length, 'card')}. Show the list`}
+        onClick={() =>
+          v.show({
+            kind: 'list',
+            title: `Hand (${hand.length})`,
+            sections: [{ items: group(state, hand) }],
+          })
+        }
+      >
+        <HandLabel player={player} count={hand.length} />
+      </button>
     </div>
+  )
+}
+
+function HandLabel({ player, count }: { player: number; count: number }) {
+  const v = useViewer()
+  return (
+    <>
+      <span className={`player player-${v.side(player)}`}>{v.name(player)}</span> · Hand{' '}
+      <strong>{count}</strong>
+    </>
   )
 }
 
@@ -314,9 +347,8 @@ function HandStrip({ player }: { player: number }) {
         v.show({ kind: 'list', title: `Hand (${hand.length})`, sections: [{ items }] })
       }
     >
-      <span className="strip-label">
-        <span className={`player player-${v.side(player)}`}>{v.name(player)}</span> · Hand{' '}
-        <strong>{hand.length}</strong>
+      <span className="hand-label">
+        <HandLabel player={player} count={hand.length} />
       </span>
       <span className="strip-cards">
         {hand.map((id) => (

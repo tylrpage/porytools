@@ -43,18 +43,23 @@ with none of Live's art, mat, badge shapes or colours.
     markers. Every condition also has a text label (rotation alone isn't accessible).
 - **Bench:** one row that shrinks its cards to fit up to 8 (Area Zero Underdepths).
 - **Stadium:** a slot two cards wide, since a Legendary Stadium is 2 cards side by side.
+  Centred on the middle line, which is only one caption line high, so it reaches into both
+  areas; both prize stacks start clear of it.
 - **Prizes:** a stack straight down the left side with a count; face up where known
   (all-seeing view).
 - **Deck:** a back with its count; a known top or bottom card shows face up on the pile.
 - **Discard:** the top card face up with its count. **Lost Zone:** only when not empty,
   next to the discard.
 - **Hands:** the bottom player's hand is a row of full-size cards, centred, that scrolls
-  sideways when it doesn't fit (like Limitless's tabletop). The top player's hand is a thin
-  centred strip of small backs with a count; known cards face up, still small.
+  sideways when it doesn't fit (like Limitless's tabletop); a vertical mouse wheel over it
+  scrolls it too. The top player's hand is a thin centred strip of small backs; known cards
+  face up, still small. Each has a one-line label ("You · Hand 7") at the left on the
+  player's side of the hand: above the top strip, below the bottom hand.
 - **Fixed size:** every row of the board has a fixed height in card sizes, so neither
   player's area changes size during the game (hands arriving, highlights, conditions) and
-  the board never shifts while scrubbing. The areas share the spare height; the grey gap
-  around them is the same on all four sides. Special Condition labels sit over the card.
+  the board never shifts while scrubbing. The areas share the spare height, split evenly
+  either side of each mat (edge to mat = mat to hand); the grey gap around them is the
+  same on all four sides. Special Condition labels sit over the card.
 - **Tapping** a pile or a hand opens a list of its cards (with known deck top / bottom).
   Tapping or clicking a card opens a close-up (the small image scaled up). No hover
   previews on the board: the cards are already pictures.
@@ -99,7 +104,8 @@ with none of Live's art, mat, badge shapes or colours.
 ## Built (choices made while building)
 - Player colours go by seat, not by player number: the bottom player is blue, the top one
   red (both modes), so "you" keep one colour when Viewpoint flips the board.
-- The Stadium sits at the left of the middle line, with the caption centred beside it.
+- The Stadium sits near the left of the middle line (half a card in from the edge), with
+  the caption centred on the board and kept clear of it.
 - The horizontal view needs a window at least 60rem wide with width/height ≥ 0.97. The
   owner's roughly square desktop window (about 0.96) is just on the vertical side.
 - The timeline's pointer handling is on the bar; a hidden range input under it is the

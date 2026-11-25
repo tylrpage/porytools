@@ -83,6 +83,11 @@ with the reason.
   card instead of adding a line. The grey gap around the areas is even on all four sides.
   Moving between actions should change only what the action changed, or the eye chases the
   layout instead of the cards.
+- **A vertical wheel over a row that scrolls sideways scrolls the row** (the hand), until it
+  reaches the end; then the page scrolls as usual. A mouse has no sideways wheel, so
+  otherwise the row can only be dragged by its scroll bar.
+- **Large tinted areas use opaque colours** (the tint mixed with the colour beneath), not
+  transparency: Chrome can draw low-alpha backgrounds as faint uneven tiles.
 
 ## General
 - **Buttons are the same height as dropdowns and text boxes** (same vertical padding and
