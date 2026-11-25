@@ -130,6 +130,7 @@ The foundation for the solver output, replays, and mid-game analysis.
   - ☑ Round 1 feedback (9 layout items; one not reproduced): `docs/replay-feedback.md`
   - ☑ Round 2 feedback (9 items): same file
   - ☑ Round 3 feedback (4 items): same file
+  - ☐ Round 4 feedback (6 items, iOS Safari): same file
 
 ## M4 — Rust solver core (goldfish simulator) ☐
 - ☐ Solver runs in a Web Worker (the crate itself is set up in M3)

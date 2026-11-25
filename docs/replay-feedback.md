@@ -132,3 +132,17 @@ when fixed. Delete items once done and the owner has checked them; delete the fi
 
 Noted, not a task: the deck isn't highlighted when cards are drawn or set out as prizes;
 fine for now (owner, 2026-11-25).
+
+## Round 4 (2026-11-25, iOS Safari)
+
+1. ☐ **Caption text too big on phones.** The centre action text looks right on desktop but
+   on the phone is much bigger than other text on screen. Make it smaller so more fits on a
+   line.
+2. ☐ **Stadium outline cut off on the right** (iOS Safari only; Firefox iOS is fine).
+3. ☐ **Opponent's hand area too narrow;** it cuts off the cards.
+4. ☐ **Your hand isn't centred;** it starts at the left and fills to the right.
+5. ☐ **Opponent's prizes grow the wrong way** (desktop and iOS). Their board is mirrored,
+   so their prize zone starts towards the middle line and grows upwards (on screen); today
+   it starts at the top.
+6. ☐ **Turn-jump buttons as vector icons.** Replace the previous/next turn emoji with an
+   SVG (two arrows and a vertical line), so it looks the same on every device.
