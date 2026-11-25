@@ -75,6 +75,14 @@ with the reason.
   Confused), player colours and highlights always come with a text label or aria label.
 - **One automatic layout per window shape, no toggle.** Wide landscape gets the log as a
   column; everything else gets it behind a button.
+- **Labels inside card slots are centred both ways** ("No Stadium"), so an empty slot reads
+  as one tidy box. Centre on `.slot` itself, not per label, so new slot labels get it too.
+- **The board never changes size or shifts while scrubbing.** Each player's area keeps one
+  size all game: rows have fixed heights in card sizes, with room reserved for the hand,
+  highlight outlines and scroll bars, and labels that come and go (conditions) overlay a
+  card instead of adding a line. The grey gap around the areas is even on all four sides.
+  Moving between actions should change only what the action changed, or the eye chases the
+  layout instead of the cards.
 
 ## General
 - **Buttons are the same height as dropdowns and text boxes** (same vertical padding and

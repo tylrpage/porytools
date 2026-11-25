@@ -22,8 +22,9 @@ Terms follow `GLOSSARY.md` (action, change, log, viewpoint, branch).
 
 ## Board
 Laid out like the official playmat: prizes left, deck and discard right, the Active Spot in
-the centre with the Bench behind it, the Stadium on the middle line; the top player
-mirrored. Drawn in porytools' own plain style from the theme tokens (light and dark mode),
+the centre with the Bench behind it, the Stadium on the middle line. The top player is
+mirrored top to bottom only (Active nearest the middle line), so both players' prizes are on
+the left and both Active Spots line up. Drawn in porytools' own plain style from the theme tokens (light and dark mode),
 with none of Live's art, mat, badge shapes or colours.
 
 - **Who's at the bottom:** the record's viewpoint player. For all-seeing records Player 1,
@@ -42,13 +43,18 @@ with none of Live's art, mat, badge shapes or colours.
     markers. Every condition also has a text label (rotation alone isn't accessible).
 - **Bench:** one row that shrinks its cards to fit up to 8 (Area Zero Underdepths).
 - **Stadium:** a slot two cards wide, since a Legendary Stadium is 2 cards side by side.
-- **Prizes:** a fanned stack with a count; face up where known (all-seeing view).
+- **Prizes:** a stack straight down the left side with a count; face up where known
+  (all-seeing view).
 - **Deck:** a back with its count; a known top or bottom card shows face up on the pile.
 - **Discard:** the top card face up with its count. **Lost Zone:** only when not empty,
   next to the discard.
-- **Hands:** the bottom player's hand is a row of full-size cards that scrolls sideways when
-  it doesn't fit (like Limitless's tabletop). The top player's hand is a thin strip of small
-  backs with a count; known cards face up, still small.
+- **Hands:** the bottom player's hand is a row of full-size cards, centred, that scrolls
+  sideways when it doesn't fit (like Limitless's tabletop). The top player's hand is a thin
+  centred strip of small backs with a count; known cards face up, still small.
+- **Fixed size:** every row of the board has a fixed height in card sizes, so neither
+  player's area changes size during the game (hands arriving, highlights, conditions) and
+  the board never shifts while scrubbing. The areas share the spare height; the grey gap
+  around them is the same on all four sides. Special Condition labels sit over the card.
 - **Tapping** a pile or a hand opens a list of its cards (with known deck top / bottom).
   Tapping or clicking a card opens a close-up (the small image scaled up). No hover
   previews on the board: the cards are already pictures.

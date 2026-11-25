@@ -124,15 +124,19 @@
   container-type: size;
 }
 
+/* Every row of the board has a fixed height in card sizes, so the areas keep one size all
+   game (hands arriving, highlights, conditions). The areas share whatever height is left
+   over; --cw is the largest card width that fits: about 9.7 card widths plus 52px of fixed
+   room (hand scroll bar and outlines, strip padding, caption) top to bottom, 8.4 across. */
 .board {
-  --cw: min(calc(100cqw / 8.4), calc(100cqh * 0.1));
+  --cw: min(calc(100cqw / 8.4), calc((100cqh - 52px) / 9.7));
   --ch: calc(var(--cw) * 337 / 245);
+  --pad: calc(var(--cw) * 0.08);
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: calc(var(--cw) * 0.08);
-  padding: calc(var(--cw) * 0.08);
+  gap: var(--pad);
+  padding: var(--pad);
   background: var(--mat);
   border-radius: 0.5rem;
   overflow: hidden;
@@ -148,8 +152,17 @@
 }
 
 .area {
-  padding: calc(var(--cw) * 0.06) calc(var(--cw) * 0.1);
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--cw) * 0.1);
+  padding: calc(var(--cw) * 0.1);
   border-radius: 0.5rem;
+}
+/* Spare height goes between the hand and the mat, so the mats stay by the middle line. */
+.area.top .mat,
+.area.bottom .hand-row {
+  margin-top: auto;
 }
 .area.side-a {
   background: color-mix(in srgb, var(--pa) 5%, transparent);
@@ -158,23 +171,29 @@
   background: color-mix(in srgb, var(--pb) 5%, transparent);
 }
 
+/* Both mats use the same columns, so the two Active Spots line up. The pile column widens on
+   both sides when either player has a Lost Zone. */
 .mat {
+  flex: none;
   display: grid;
-  grid-template-columns: calc(var(--cw) * 1.25) minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
+  grid-template-columns: calc(var(--cw) * 1.25) minmax(0, 1fr) calc(var(--cw) * 1.25);
+  grid-template-rows: var(--ch) var(--ch);
   grid-template-areas:
     'prizes active deck'
     'prizes bench discard';
   column-gap: calc(var(--cw) * 0.3);
   row-gap: calc(var(--cw) * 0.15);
 }
+.board:has(.pile.lost) .mat {
+  grid-template-columns: calc(var(--cw) * 1.25) minmax(0, 1fr) calc(var(--cw) * 2.25);
+}
 
-/* The top player is mirrored: Active nearest the middle, prizes on the right. */
+/* The top player is mirrored top to bottom: Active nearest the middle line. Prizes stay on
+   the left and the piles on the right, as on the bottom. */
 .area.top .mat {
-  grid-template-columns: auto minmax(0, 1fr) calc(var(--cw) * 1.25);
   grid-template-areas:
-    'discard bench prizes'
-    'deck active prizes';
+    'prizes bench discard'
+    'prizes active deck';
 }
 
 .active-row,
@@ -183,7 +202,6 @@
   justify-content: center;
   align-items: flex-start;
   min-width: 0;
-  min-height: var(--ch);
 }
 .active-row {
   grid-area: active;
@@ -260,8 +278,12 @@
   color: var(--muted);
 }
 
+/* An empty card spot; any label inside sits in the middle. */
 .slot {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   width: var(--cw);
   aspect-ratio: 245 / 337;
   border: 2px dashed var(--border);
@@ -420,12 +442,17 @@
   background: var(--back-b);
 }
 
+/* Over the card, above the Energy, so a condition doesn't make the row taller. */
 .mon-conds {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--ch) * 0.2);
+  z-index: 2;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap-reverse;
   justify-content: center;
   gap: 2px;
-  margin-top: 4px;
 }
 
 .cond {
@@ -437,13 +464,12 @@
   line-height: 1.3;
 }
 
-/* Prizes: a fan down the side with a count. */
+/* Prizes: a stack straight down the left side with a count. */
 
 .prizes {
   grid-area: prizes;
   position: relative;
   align-self: stretch;
-  min-height: calc(var(--ch) * 1.5);
 }
 
 .fan {
@@ -453,8 +479,8 @@
 
 .fan-card {
   position: absolute;
+  left: 0;
   width: var(--cw);
-  left: calc(var(--i) * var(--cw) * 0.04);
   top: calc(var(--i) * (100% - var(--ch)) / max(var(--n) - 1, 1));
 }
 
@@ -490,12 +516,15 @@
 
 /* Middle line: Stadium and the caption of the current action. */
 
+/* Fixed height (a Stadium, or a caption line over a strip of seen cards); a longer caption
+   spills over the areas rather than resizing them. */
 .mid {
+  flex: none;
+  height: calc(var(--ch) * 0.75 + 1.5rem);
   display: flex;
   align-items: center;
   gap: calc(var(--cw) * 0.3);
-  min-height: calc(var(--ch) * 0.75);
-  padding: 2px calc(var(--cw) * 0.1);
+  padding: 0 calc(var(--cw) * 0.1);
 }
 
 .stadium {
@@ -511,9 +540,6 @@
 
 .stadium-empty {
   width: calc(var(--cw) * 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: max(0.6rem, calc(var(--cw) * 0.14));
   color: var(--muted);
 }
@@ -529,6 +555,8 @@
 }
 
 .caption {
+  position: relative;
+  z-index: 3;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -585,16 +613,19 @@
 
 /* Hands */
 
+/* Count on the left, cards centred on the row; with a wide hand the cards move right to
+   clear the count, then scroll. Fixed height: a card, its outline, a scroll bar. */
 .hand-row {
-  display: flex;
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, max-content) 1fr;
   align-items: center;
-  gap: calc(var(--cw) * 0.15);
-  min-width: 0;
-  margin-top: calc(var(--cw) * 0.1);
+  column-gap: calc(var(--cw) * 0.15);
+  height: calc(var(--ch) + 20px);
 }
 
 .board .hand-count {
-  flex: none;
+  justify-self: start;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -607,14 +638,15 @@
 }
 
 .hand {
-  flex: 1;
+  align-self: stretch;
   min-width: 0;
   display: flex;
+  align-items: flex-start;
   gap: calc(var(--cw) * 0.08);
   margin: 0;
   padding: 5px;
   list-style: none;
-  overflow-x: auto;
+  overflow: auto hidden;
 }
 
 .hand li {
@@ -626,26 +658,31 @@
   width: 100%;
 }
 
+/* Same arrangement as the hand row: label left, cards centred. Room for the cards' outlines
+   inside .strip-cards, which clips. */
 .hand-strip {
-  display: flex;
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, max-content) 1fr;
   align-items: center;
-  gap: 0.5rem;
+  column-gap: 0.5rem;
   width: 100%;
-  min-height: calc(var(--ch) * 0.45);
-  margin-bottom: calc(var(--cw) * 0.08);
+  height: calc(var(--ch) * 0.4 + 8px);
   text-align: left;
 }
 
 .strip-label {
-  flex: none;
+  justify-self: start;
   font-size: 0.75rem;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .strip-cards {
   display: flex;
   gap: 2px;
   min-width: 0;
+  padding: 3px;
   overflow: hidden;
 }
 

@@ -1,6 +1,7 @@
 // The table, laid out like the playmat in porytools' own look: prizes left, deck and discard
 // right, the Active Spot in the centre with the Bench behind it, the Stadium on the middle
-// line. The top player is mirrored. See docs/replay-viewer.md.
+// line. The top player is mirrored top to bottom only (Active nearest the middle line), so
+// both players' prizes are on the left. See docs/replay-viewer.md.
 import type { CSSProperties, ReactNode } from 'react'
 import type { Pokemon } from '../game/types/Pokemon'
 import CardFace from './CardFace.tsx'
